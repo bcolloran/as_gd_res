@@ -1,0 +1,21 @@
+[package]
+name = "extract_gd"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+
+[dependencies]
+extract_gd_derive = { path = "../extract_gd_derive" }
+godot = { path = "/data/code_projects/rust/gdext/godot", features = [
+  "register-docs",
+  # experimental-threads needed because of  https://github.com/godot-rust/gdext/issues/597
+  "experimental-threads",
+] }
+
+
+[dev-dependencies]
+test-case = "3.3.1"
