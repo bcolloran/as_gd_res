@@ -10,14 +10,10 @@ default = []
 
 [dependencies]
 extract_gd_derive = { path = "../extract_gd_derive" }
+as_gd_res_derive = { path = "../as_gd_res_derive" }
+
 godot = { path = "/data/code_projects/rust/gdext/godot", features = [
   "register-docs",
   # experimental-threads needed because of  https://github.com/godot-rust/gdext/issues/597
   "experimental-threads",
 ] }
-
-
-[dev-dependencies]
-test-case = "3.3.1"
-# trybuild = "1.0"
-macrotest = "1.1.0"
