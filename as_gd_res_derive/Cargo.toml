@@ -1,5 +1,5 @@
 [package]
-name = "extract_gd_derive"
+name = "as_gd_res_derive"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,3 +13,4 @@ proc-macro = true
 syn = { version = "1.0.105", features = ["full", "extra-traits"] }
 quote = "1.0.21"
 proc-macro2 = "1.0.47"
+reflect = "0.0.15"
