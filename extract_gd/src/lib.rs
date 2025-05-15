@@ -1,5 +1,4 @@
 pub mod gen_resource_spec;
-pub mod gen_resource_try_out;
 
 use extract_gd_derive::ExtractGd;
 use godot::obj::{bounds, Bounds, Gd, GodotClass};
