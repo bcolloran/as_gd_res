@@ -266,28 +266,28 @@ pub enum BrainParams {
 
 // In the case of an enum where all variants have a single associated data type (i _think_ (but I'm not sure) that this is equivalent to all variants matching `syn::data::Fields::Unnamed`), we need to create a new trait `#{enum_name}DynRes` with a method `extract_enum_data`. The associated type for each enum variant will impl this trait, extracting the spcific data type for that variant.
 // ******** example output #[derive(AsGdRes)] for BrainParams, START ********
-pub trait BrainParamsDynRes {
+pub trait BrainParamsEnumDynRes {
     fn extract_enum_data(&self) -> BrainParams;
 }
 // impls for the enum variants
-impl BrainParamsDynRes for RoombaBrainParamsResource {
+impl BrainParamsEnumDynRes for RoombaBrainParamsResource {
     fn extract_enum_data(&self) -> BrainParams {
         BrainParams::Roomba(self.extract())
     }
 }
-impl BrainParamsDynRes for TankBrainParamsResource {
+impl BrainParamsEnumDynRes for TankBrainParamsResource {
     fn extract_enum_data(&self) -> BrainParams {
         BrainParams::Tank(self.extract())
     }
 }
 
-// the `AsGdRes` impl for the enum itself will be a `DynGd<Resource, dyn #{enum_name}DynRes>``
+// the `AsGdRes` impl for the enum itself will be a `DynGd<Resource, dyn #{enum_name}EnumDynRes>``
 impl AsGdRes for BrainParams {
-    type ResType = DynGd<Resource, dyn BrainParamsDynRes>;
+    type ResType = DynGd<Resource, dyn BrainParamsEnumDynRes>;
 }
 
-// the `ExtractGd` impl for `DynGd<Resource, dyn #{enum_name}DynRes>` will `dyn_bind` the dyn compatible Resouce, and call `extract_enum_data` on to get back the enum variant
-impl ExtractGd for DynGd<Resource, dyn BrainParamsDynRes> {
+// the `ExtractGd` impl for `DynGd<Resource, dyn #{enum_name}EnumDynRes>` will `dyn_bind` the dyn compatible Resouce, and call `extract_enum_data` on to get back the enum variant
+impl ExtractGd for DynGd<Resource, dyn BrainParamsEnumDynRes> {
     type Extracted = BrainParams;
     fn extract(&self) -> Self::Extracted {
         self.dyn_bind().extract_enum_data()
@@ -296,14 +296,27 @@ impl ExtractGd for DynGd<Resource, dyn BrainParamsDynRes> {
 
 #[derive(GodotClass)]
 #[class(tool, init, base=Resource)]
-pub struct BrainParamsResource {
+pub struct BrainParamsEnumResource {
     // we will always add the `base: Base<Resource>` field to the generated struct,
     // and always with the `#[base]` attribute
     #[base]
     base: Base<Resource>,
 
+    // in the case of an enum with associated data, we need to add a field of called "dyn_enum"
+    // with type `OnEditor<DynGd<Resource, dyn #{enum_name}EnumDynRes>>` to the generated struct
+    // and add the `#[export]` attribute to it
+    //
+    // this is wrapped in `OnEditor` because an enum variant MUST be selected in the editor
+    // (if an optional enum is desired, the rust type should be e.g. `Option<BrainParams>`)
     #[export]
-    pub brain_params: Option<DynGd<Resource, dyn BrainParamsDynRes>>,
+    dyn_enum: OnEditor<DynGd<Resource, dyn BrainParamsEnumDynRes>>,
+}
+
+impl ExtractGd for BrainParamsEnumResource {
+    type Extracted = BrainParams;
+    fn extract(&self) -> Self::Extracted {
+        *self.dyn_enum.extract()
+    }
 }
 
 // ******** example output #[derive(AsGdRes)] for BrainParams, END ********
@@ -344,6 +357,8 @@ pub struct EnemyParams {
 
     // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
     pub damage_team: DamageTeam,
+    // // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
+    // pub damage_team_opt: Option<DamageTeam>,
 }
 
 // // ******** example #[derive(AsGdRes)] output, start ********
@@ -368,7 +383,9 @@ pub struct EnemyParamsResource {
     pub drop_params: <Option<DropParams2> as AsGdRes>::ResType,
 
     #[export]
-    pub damage_team: DamageTeam,
+    pub damage_team: <DamageTeam as AsGdRes>::ResType,
+    // #[export]
+    // pub damage_team_opt: <Option<DamageTeam> as AsGdRes>::ResType,
 }
 
 impl ExtractGd for EnemyParamsResource {
@@ -379,6 +396,7 @@ impl ExtractGd for EnemyParamsResource {
             brain_params_optional: self.brain_params_optional.extract(),
             drop_params: self.drop_params.extract(),
             damage_team: self.damage_team.extract(),
+            // damage_team_opt: self.damage_team_opt.extract(),
         }
     }
 }
