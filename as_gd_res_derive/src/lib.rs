@@ -105,7 +105,7 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                 }
             } else if single_tuple {
                 // single-tuple variants only
-                let dyn_trait = format_ident!("{}DynRes", name);
+                let dyn_trait = format_ident!("{}DynEnumResource", name);
                 let mut enum_trait_impls = Vec::new();
                 for var in data.variants.iter() {
                     let var_ident = &var.ident;

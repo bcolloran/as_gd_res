@@ -186,40 +186,93 @@ fn test_enum_with_data_variants() {
     };
 
     let expected = quote! {
-            pub trait BrainParamsDynRes {
+            pub trait BrainParamsDynEnumResource {
                 fn extract_enum_data(&self) -> BrainParams;
             }
-            impl BrainParamsDynRes for RoombaBrainParamsResource {
+            impl BrainParamsDynEnumResource for RoombaBrainParamsResource {
                 fn extract_enum_data(&self) -> BrainParams {
                     BrainParams::Roomba(self.extract())
                 }
             }
-            impl BrainParamsDynRes for TankBrainParamsResource {
+            impl BrainParamsDynEnumResource for TankBrainParamsResource {
                 fn extract_enum_data(&self) -> BrainParams {
                     BrainParams::Tank(self.extract())
                 }
             }
 
             impl AsGdRes for BrainParams {
-                type ResType = DynGd<Resource, dyn BrainParamsDynRes>;
+                type ResType = DynGd<Resource, dyn BrainParamsDynEnumResource>;
             }
 
-            impl ExtractGd for DynGd<Resource, dyn BrainParamsDynRes> {
+            impl ExtractGd for DynGd<Resource, dyn BrainParamsDynEnumResource> {
                 type Extracted = BrainParams;
                 fn extract(&self) -> Self::Extracted {
                     self.dyn_bind().extract_enum_data()
                 }
             }
 
-            #[derive(GodotClass)]
-            #[class(tool, init, base=Resource)]
-            pub struct BrainParamsResource {
-                #[base]
-                base: Base<Resource>,
+    };
 
-                #[export]
-                pub brain_params: Option<DynGd<Resource, dyn BrainParamsDynRes>>,
+    assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
+}
+
+#[test]
+fn test_complex_nested_struct() {
+    let input: syn::DeriveInput = parse_quote! {
+      pub struct EnemyParams {
+          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
+          pub brain_params_required: OnEditorInit<BrainParams>,
+          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
+          pub brain_params_optional: Option<BrainParams>,
+          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
+          pub brains_vec: Vec<BrainParams>,
+          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
+          pub drop_params: Option<DropParams2>,
+          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
+          pub damage_team: DamageTeam,
+      }
+    };
+
+    let expected = quote! {
+
+        impl AsGdRes for EnemyParams {
+            type ResType = Gd<EnemyParamsResource>;
+        }
+
+        #[derive(GodotClass)]
+        #[class(tool, init, base=Resource)]
+        pub struct EnemyParamsResource {
+            // we will always add the `base: Base<Resource>` field to the generated struct,
+            // and always with the `#[base]` attribute
+            #[base]
+            base: Base<Resource>,
+
+            #[export]
+            pub brain_params_required: <OnEditorInit<BrainParams> as AsGdRes>::ResType,
+            #[export]
+            pub brain_params_optional: <Option<BrainParams> as AsGdRes>::ResType,
+            #[export]
+            pub brains_vec: <Vec<BrainParams> as AsGdRes>::ResType,
+
+            #[export]
+            pub drop_params: <Option<DropParams2> as AsGdRes>::ResType,
+            #[export]
+            pub damage_team: <DamageTeam as AsGdRes>::ResType,
+        }
+
+        impl ExtractGd for EnemyParamsResource {
+            type Extracted = EnemyParams;
+            fn extract(&self) -> Self::Extracted {
+                Self::Extracted {
+                    brain_params_required: self.brain_params_required.extract(),
+                    brain_params_optional: self.brain_params_optional.extract(),
+                    brains_vec: self.brains_vec.extract(),
+                    drop_params: self.drop_params.extract(),
+                    damage_team: self.damage_team.extract(),
+                }
             }
+        }
+
     };
 
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
