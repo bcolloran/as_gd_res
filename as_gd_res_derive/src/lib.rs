@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_quote, Data, DeriveInput};
+use syn::{parse_quote, Data, DeriveInput, Fields};
 
 /// A derive macro to emit a Godot-compatible resource struct + impls for a pure Rust struct.
 #[proc_macro_derive(AsGdRes, attributes(export, init, var))]
@@ -69,6 +69,75 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                     }
                 }
             }
+        }
+        Data::Enum(data) => {
+            // Check variants
+            let mut unit_only = true;
+            let mut single_tuple = true;
+            for var in data.variants.iter() {
+                match &var.fields {
+                    Fields::Unit => {}
+                    Fields::Unnamed(u) if u.unnamed.len() == 1 => {
+                        unit_only = false;
+                    }
+                    _ => {
+                        unit_only = false;
+                        single_tuple = false;
+                    }
+                }
+            }
+
+            let tokens = if unit_only {
+                // unit-only enum
+                quote! {
+                    impl AsGdRes for #name {
+                        type ResType = #name;
+                    }
+                    impl ExtractGd for #name {
+                        type Extracted = #name;
+                        fn extract(&self) -> Self::Extracted {
+                            self.clone()
+                        }
+                    }
+                }
+            } else if single_tuple {
+                // single-tuple variants only
+                let dyn_trait = format_ident!("{}DynRes", name);
+                let mut enum_trait_impls = Vec::new();
+                for var in data.variants.iter() {
+                    let var_ident = &var.ident;
+                    let res_var = format_ident!("{}Resource", var_ident);
+                    enum_trait_impls.push(quote! {
+                        impl #dyn_trait for #res_var {
+                            fn extract_enum_data(&self) -> #name {
+                                #name::#var_ident(self.extract())
+                            }
+                        }
+                    });
+                }
+                quote! {
+                    // DynRes trait
+                    pub trait #dyn_trait { fn extract_enum_data(&self) -> #name; }
+
+                    #(#enum_trait_impls)*
+
+                    impl AsGdRes for #name {
+                        type ResType = DynGd<Resource, dyn #dyn_trait>;
+                    }
+                    impl ExtractGd for DynGd<Resource, dyn #dyn_trait> {
+                        type Extracted = #name;
+                        fn extract(&self) -> Self::Extracted {
+                            self.dyn_bind().extract_enum_data()
+                        }
+                    }
+                }
+            } else {
+                quote! {
+                    compile_error!("AsGdRes only supports unit enums or single-tuple enums");
+                }
+            };
+
+            tokens.into()
         }
         _ => quote! {
             compile_error!("AsGdRes derive only supports plain structs in test mode");
@@ -220,6 +289,92 @@ mod tests {
               }
           }
 
+        };
+
+        assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn test_simple_enum() {
+        let input: syn::DeriveInput = parse_quote! {
+                #[derive(Default, Clone, Copy, GodotConvert, Var, Export)]
+                #[godot(via = GString)]
+                // #[derive(AsGdRes)] // commented out because this is not implemented yet, this is an example of what we want to be able to do
+                pub enum DamageTeam {
+                    #[default]
+                    Player,
+                    Enemy,
+                    Environment,
+                }
+
+        };
+
+        let expected = quote! {
+                impl AsGdRes for DamageTeam {
+                    type ResType = DamageTeam;
+                }
+
+                impl ExtractGd for DamageTeam {
+                    type Extracted = DamageTeam;
+                    fn extract(&self) -> Self::Extracted {
+                        self.clone()
+                    }
+                }
+
+        };
+
+        assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn test_enum_with_data_variants() {
+        let input: syn::DeriveInput = parse_quote! {
+                pub enum BrainParams {
+                        Roomba(RoombaBrainParams),
+                        Tank(TankBrainParams),
+                    }
+        };
+
+        let expected = quote! {
+                pub trait BrainParamsDynRes {
+                    fn extract_enum_data(&self) -> BrainParams;
+                }
+                // impls for the enum variants
+                impl BrainParamsDynRes for RoombaBrainParamsResource {
+                    fn extract_enum_data(&self) -> BrainParams {
+                        BrainParams::Roomba(self.extract())
+                    }
+                }
+                impl BrainParamsDynRes for TankBrainParamsResource {
+                    fn extract_enum_data(&self) -> BrainParams {
+                        BrainParams::Tank(self.extract())
+                    }
+                }
+
+                // the `AsGdRes` impl for the enum itself will be a `DynGd<Resource, dyn #{enum_name}DynRes>``
+                impl AsGdRes for BrainParams {
+                    type ResType = DynGd<Resource, dyn BrainParamsDynRes>;
+                }
+
+                // the `ExtractGd` impl for `DynGd<Resource, dyn #{enum_name}DynRes>` will `dyn_bind` the dyn compatible Resouce, and call `extract_enum_data` on to get back the enum variant
+                impl ExtractGd for DynGd<Resource, dyn BrainParamsDynRes> {
+                    type Extracted = BrainParams;
+                    fn extract(&self) -> Self::Extracted {
+                        self.dyn_bind().extract_enum_data()
+                    }
+                }
+
+                #[derive(GodotClass)]
+                #[class(tool, init, base=Resource)]
+                pub struct BrainParamsResource {
+                    // we will always add the `base: Base<Resource>` field to the generated struct,
+                    // and always with the `#[base]` attribute
+                    #[base]
+                    base: Base<Resource>,
+
+                    #[export]
+                    pub brain_params: Option<DynGd<Resource, dyn BrainParamsDynRes>>,
+                }
         };
 
         assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
