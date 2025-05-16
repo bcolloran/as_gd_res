@@ -1,0 +1,15 @@
+[package]
+name = "resource_test_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+godot = { path = "/data/code_projects/rust/gdext/godot", features = [
+  "register-docs",
+  # experimental-threads needed because of  https://github.com/godot-rust/gdext/issues/597
+  "experimental-threads",
+] }
+as_gd_res = { path = "../as_gd_res" }
