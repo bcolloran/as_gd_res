@@ -1,6 +1,9 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Lit, Meta, NestedMeta};
+use syn::{parse_macro_input, Data, DeriveInput, Expr, ExprLit, Fields, Ident, Lit, Meta};
+
+#[cfg(test)]
+mod tests;
 
 /// A derive macro to implement `ExtractGd` and optionally generate an `Extracted` struct.
 ///
@@ -17,35 +20,38 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields, Lit, Meta, NestedMeta};
 ///   ```
 #[proc_macro_derive(ExtractGd, attributes(extract_to, extract_ignore, base))]
 pub fn extract_gd_derive(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
+    let derive_input = parse_macro_input!(input as DeriveInput);
+    let expanded = derive_inner(derive_input);
+    TokenStream::from(expanded)
+}
+
+fn derive_inner(input: DeriveInput) -> proc_macro2::TokenStream {
+    // let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
     let vis = &input.vis;
 
-    // Look for #[extract_to = "Name"] or #[extract_to(Name)]
-    let mut target_name: Option<syn::Ident> = None;
+    // Determine optional target name
+    let mut target_name: Option<Ident> = None;
     for attr in &input.attrs {
-        if attr.path.is_ident("extract_to") {
-            match attr.parse_meta() {
-                // name-value: #[extract_to = "Foo"]
-                Ok(Meta::NameValue(nv)) if matches!(nv.lit, Lit::Str(_)) => {
-                    if let Lit::Str(lit) = nv.lit {
-                        target_name = Some(syn::Ident::new(&lit.value(), lit.span()));
-                    }
+        if attr.path().is_ident("extract_to") {
+            // Parentheses style: #[extract_to(Name)]
+            if let Ok(ident) = attr.parse_args::<Ident>() {
+                target_name = Some(ident);
+            }
+            // Name-value style: #[extract_to = "Name"]
+            else if let Meta::NameValue(nv) = &attr.meta {
+                if let Expr::Lit(ExprLit {
+                    lit: Lit::Str(lit_str),
+                    ..
+                }) = &nv.value
+                {
+                    target_name = Some(Ident::new(&lit_str.value(), lit_str.span()));
                 }
-                // list: #[extract_to(Foo)]
-                Ok(Meta::List(list)) => {
-                    if let Some(NestedMeta::Meta(Meta::Path(path))) = list.nested.first() {
-                        if let Some(ident) = path.get_ident() {
-                            target_name = Some(ident.clone());
-                        }
-                    }
-                }
-                _ => {}
             }
         }
     }
 
-    // Gather fields if we need to generate a new struct
+    // Collect fields for extracted struct, if any
     let (field_idents, field_types) = if target_name.is_some() {
         if let Data::Struct(data_struct) = &input.data {
             if let Fields::Named(named) = &data_struct.fields {
@@ -53,16 +59,13 @@ pub fn extract_gd_derive(input: TokenStream) -> TokenStream {
                     .named
                     .iter()
                     .filter_map(|f| {
-                        let skip = f
-                            .attrs
-                            .iter()
-                            .any(|a| a.path.is_ident("extract_ignore") || a.path.is_ident("base"));
+                        let skip = f.attrs.iter().any(|a| {
+                            a.path().is_ident("extract_ignore") || a.path().is_ident("base")
+                        });
                         if skip {
                             None
                         } else {
-                            let ident = f.ident.as_ref().unwrap();
-                            let ty = &f.ty;
-                            Some((ident.clone(), ty.clone()))
+                            Some((f.ident.clone().unwrap(), f.ty.clone()))
                         }
                     })
                     .unzip()
@@ -76,7 +79,7 @@ pub fn extract_gd_derive(input: TokenStream) -> TokenStream {
         (Vec::new(), Vec::new())
     };
 
-    // Generate the code
+    // Generate the output tokens
     let expanded = if let Some(extracted_struct_name) = target_name {
         quote! {
             #vis struct #extracted_struct_name {
@@ -97,7 +100,6 @@ pub fn extract_gd_derive(input: TokenStream) -> TokenStream {
             }
         }
     } else {
-        // Fallback clone impl
         quote! {
             impl ExtractGd for #name
             where #name: Clone
@@ -110,5 +112,61 @@ pub fn extract_gd_derive(input: TokenStream) -> TokenStream {
         }
     };
 
-    TokenStream::from(expanded)
+    expanded.into()
 }
+
+// mod tests {
+//     use super::derive_inner;
+//     use pretty_assertions::assert_eq;
+//     use quote::quote;
+//     use syn::parse_quote;
+
+//     #[test]
+//     fn test_1() {
+//         let input: syn::DeriveInput = parse_quote! {
+//                 pub enum BrainParams {
+//                         Roomba(RoombaBrainParams),
+//                         Tank(TankBrainParams),
+//                     }
+//         };
+
+//         let expected = quote! {
+//                 pub trait BrainParamsDynRes {
+//                     fn extract_enum_data(&self) -> BrainParams;
+//                 }
+//                 impl BrainParamsDynRes for RoombaBrainParamsResource {
+//                     fn extract_enum_data(&self) -> BrainParams {
+//                         BrainParams::Roomba(self.extract())
+//                     }
+//                 }
+//                 impl BrainParamsDynRes for TankBrainParamsResource {
+//                     fn extract_enum_data(&self) -> BrainParams {
+//                         BrainParams::Tank(self.extract())
+//                     }
+//                 }
+
+//                 impl AsGdRes for BrainParams {
+//                     type ResType = DynGd<Resource, dyn BrainParamsDynRes>;
+//                 }
+
+//                 impl ExtractGd for DynGd<Resource, dyn BrainParamsDynRes> {
+//                     type Extracted = BrainParams;
+//                     fn extract(&self) -> Self::Extracted {
+//                         self.dyn_bind().extract_enum_data()
+//                     }
+//                 }
+
+//                 #[derive(GodotClass)]
+//                 #[class(tool, init, base=Resource)]
+//                 pub struct BrainParamsResource {
+//                     #[base]
+//                     base: Base<Resource>,
+
+//                     #[export]
+//                     pub brain_params: Option<DynGd<Resource, dyn BrainParamsDynRes>>,
+//                 }
+//         };
+
+//         assert_eq!(derive_inner(input).to_string(), expected.to_string());
+//     }
+// }

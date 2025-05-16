@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_quote, Data, DeriveInput, Fields};
+use syn::{parse_quote, Data, DeriveInput, Fields, Type};
 
 #[cfg(test)]
 mod tests;
@@ -108,22 +108,33 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                 let dyn_trait = format_ident!("{}DynEnumResource", name);
                 let mut enum_trait_impls = Vec::new();
                 for var in data.variants.iter() {
-                    let var_ident = &var.ident;
-                    let res_var = format_ident!("{}Resource", var_ident);
-                    enum_trait_impls.push(quote! {
-                        impl #dyn_trait for #res_var {
-                            fn extract_enum_data(&self) -> #name {
-                                #name::#var_ident(self.extract())
-                            }
+                    if let Fields::Unnamed(fields) = &var.fields {
+                        if fields.unnamed.len() == 1 {
+                            let var_ident = &var.ident;
+                            let inner_ty = &fields.unnamed[0].ty;
+                            let res_ident = match inner_ty {
+                                Type::Path(type_path) => {
+                                    let segment =
+                                        type_path.path.segments.last().unwrap().ident.clone();
+                                    format_ident!("{}Resource", segment)
+                                }
+                                _ => format_ident!("{}Resource", var_ident),
+                            };
+                            enum_trait_impls.push(quote! {
+                                impl #dyn_trait for #res_ident {
+                                    fn extract_enum_data(&self) -> #name {
+                                        #name::#var_ident(self.extract())
+                                    }
+                                }
+                            });
                         }
-                    });
+                    }
                 }
                 quote! {
-                    // DynRes trait
-                    pub trait #dyn_trait { fn extract_enum_data(&self) -> #name; }
-
+                    pub trait #dyn_trait {
+                        fn extract_enum_data(&self) -> #name;
+                    }
                     #(#enum_trait_impls)*
-
                     impl AsGdRes for #name {
                         type ResType = DynGd<Resource, dyn #dyn_trait>;
                     }
