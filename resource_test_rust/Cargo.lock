@@ -12,6 +12,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "as_gd_res"
+version = "0.1.0"
+dependencies = [
+ "as_gd_res_derive",
+ "godot",
+]
+
+[[package]]
+name = "as_gd_res_derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "gdextension-api"
 version = "0.2.2"
 source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=releases#09432b4c2c16f044f0296f96512661ea106003ff"
@@ -189,7 +206,19 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 name = "resource_test_rust"
 version = "0.1.0"
 dependencies = [
+ "as_gd_res",
  "godot",
+]
+
+[[package]]
+name = "syn"
+version = "2.0.101"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ce2b7fc941b3a24138a0a7cf8e858bfc6a992e7978a068a5c760deb0ed43caf"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
 ]
 
 [[package]]

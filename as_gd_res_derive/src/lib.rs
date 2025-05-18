@@ -52,14 +52,14 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
 
             quote! {
                 impl AsGdRes for #name {
-                    type ResType = Gd<#res_name>;
+                    type ResType = ::godot::obj::Gd<#res_name>;
                 }
 
-                #[derive(GodotClass)]
-                #[class(tool, init, base=Resource)]
+                #[derive(::godot::obj::GodotClass)]
+                #[class(tool, init, base=::godot::classes::Resource)]
                 pub struct #res_name {
                     #[base]
-                    base: Base<Resource>,
+                    base: ::godot::obj::Base<::godot::classes::Resource>,
                     #(#field_defs)*
                 }
 
@@ -136,9 +136,9 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                     }
                     #(#enum_trait_impls)*
                     impl AsGdRes for #name {
-                        type ResType = DynGd<Resource, dyn #dyn_trait>;
+                        type ResType = ::godot::obj::DynGd<::godot::classes::Resource, dyn #dyn_trait>;
                     }
-                    impl ExtractGd for DynGd<Resource, dyn #dyn_trait> {
+                    impl ExtractGd for ::godot::obj::DynGd<::godot::classes::Resource, dyn #dyn_trait> {
                         type Extracted = #name;
                         fn extract(&self) -> Self::Extracted {
                             self.dyn_bind().extract_enum_data()

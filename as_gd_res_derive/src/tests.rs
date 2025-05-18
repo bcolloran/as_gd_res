@@ -14,14 +14,14 @@ fn test_simple() {
     let actual = expand_as_gd_res(input);
     let expected = quote! {
       impl AsGdRes for SimpleStructParams {
-          type ResType = Gd<SimpleStructParamsResource>;
+          type ResType = ::godot::obj::Gd<SimpleStructParamsResource>;
       }
 
-      #[derive(GodotClass)]
-      #[class(tool, init, base=Resource)]
+      #[derive(::godot::obj::GodotClass)]
+      #[class(tool, init, base=::godot::classes::Resource)]
       pub struct SimpleStructParamsResource {
           #[base]
-          base: Base<Resource>,
+          base: ::godot::obj::Base<::godot::classes::Resource>,
           #[export]
           pub a: <f32 as AsGdRes>::ResType,
           #[export]
@@ -55,14 +55,14 @@ fn test_2() {
     let expected = quote! {
 
             impl AsGdRes for DropParams2 {
-                type ResType = Gd<DropParams2Resource>;
+                type ResType = ::godot::obj::Gd<DropParams2Resource>;
             }
 
-            #[derive(GodotClass)]
-            #[class(tool, init, base=Resource)]
+            #[derive(::godot::obj::GodotClass)]
+            #[class(tool, init, base=::godot::classes::Resource)]
             pub struct DropParams2Resource {
                 #[base]
-                base: Base<Resource>,
+                base: ::godot::obj::Base<::godot::classes::Resource>,
                 #[export]
                 pub total_value: <f32 as AsGdRes>::ResType,
                 #[export]
@@ -107,14 +107,14 @@ fn test_attr_pass_through() {
 
     let expected = quote! {
       impl AsGdRes for DropParams2 {
-          type ResType = Gd<DropParams2Resource>;
+          type ResType = ::godot::obj::Gd<DropParams2Resource>;
       }
 
-      #[derive(GodotClass)]
-      #[class(tool, init, base=Resource)]
+      #[derive(::godot::obj::GodotClass)]
+      #[class(tool, init, base=::godot::classes::Resource)]
       pub struct DropParams2Resource {
           #[base]
-          base: Base<Resource>,
+          base: ::godot::obj::Base<::godot::classes::Resource>,
           #[export(range = (100.0, 500.0))]
           #[init(val = 200.0)]
           pub total_value: <f32 as AsGdRes>::ResType,
@@ -148,8 +148,7 @@ fn test_attr_pass_through() {
 fn test_simple_enum() {
     let input: syn::DeriveInput = parse_quote! {
             #[derive(Default, Clone, Copy, GodotConvert, Var, Export)]
-            #[godot(via = GString)]
-            // #[derive(AsGdRes)] // commented out because this is not implemented yet, this is an example of what we want to be able to do
+            #[godot(via = ::godot::builtin::GString)]
             pub enum DamageTeam {
                 #[default]
                 Player,
@@ -201,10 +200,10 @@ fn test_enum_with_data_variants() {
             }
 
             impl AsGdRes for BrainParams {
-                type ResType = DynGd<Resource, dyn BrainParamsDynEnumResource>;
+                type ResType = ::godot::obj::DynGd<::godot::classes::Resource, dyn BrainParamsDynEnumResource>;
             }
 
-            impl ExtractGd for DynGd<Resource, dyn BrainParamsDynEnumResource> {
+            impl ExtractGd for ::godot::obj::DynGd<::godot::classes::Resource, dyn BrainParamsDynEnumResource> {
                 type Extracted = BrainParams;
                 fn extract(&self) -> Self::Extracted {
                     self.dyn_bind().extract_enum_data()
@@ -220,32 +219,26 @@ fn test_enum_with_data_variants() {
 fn test_complex_nested_struct() {
     let input: syn::DeriveInput = parse_quote! {
       pub struct EnemyParams {
-          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
           pub brain_params_required: OnEditorInit<BrainParams>,
-          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
           pub brain_params_optional: Option<BrainParams>,
-          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
           pub brains_vec: Vec<BrainParams>,
-          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
           pub drop_params: Option<DropParams2>,
-          // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
           pub damage_team: DamageTeam,
       }
     };
 
+    let actual = expand_as_gd_res(input);
     let expected = quote! {
 
         impl AsGdRes for EnemyParams {
-            type ResType = Gd<EnemyParamsResource>;
+            type ResType = ::godot::obj::Gd<EnemyParamsResource>;
         }
 
-        #[derive(GodotClass)]
-        #[class(tool, init, base=Resource)]
+        #[derive(::godot::obj::GodotClass)]
+        #[class(tool, init, base=::godot::classes::Resource)]
         pub struct EnemyParamsResource {
-            // we will always add the `base: Base<Resource>` field to the generated struct,
-            // and always with the `#[base]` attribute
             #[base]
-            base: Base<Resource>,
+            base: ::godot::obj::Base<::godot::classes::Resource>,
 
             #[export]
             pub brain_params_required: <OnEditorInit<BrainParams> as AsGdRes>::ResType,
@@ -275,5 +268,5 @@ fn test_complex_nested_struct() {
 
     };
 
-    assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
+    assert_eq!(actual.to_string(), expected.to_string());
 }

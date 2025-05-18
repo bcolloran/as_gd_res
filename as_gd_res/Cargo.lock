@@ -12,20 +12,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "as_gd_res"
+version = "0.1.0"
+dependencies = [
+ "as_gd_res_derive",
+ "godot",
+]
+
+[[package]]
 name = "as_gd_res_derive"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "extract_gd"
-version = "0.1.0"
-dependencies = [
- "as_gd_res_derive",
- "godot",
 ]
 
 [[package]]

@@ -1,11 +1,7 @@
 use godot::prelude::*;
 use godot::{meta::ArrayElement, obj::Gd};
 
-use crate::{ExtractGd, OnEditorInit, PackedScenePath};
-
-pub trait AsGdRes {
-    type ResType: ExtractGd;
-}
+use crate::{AsGdRes, ExtractGd, OnEditorInit, PackedScenePath};
 
 //////////////
 // NOTE: this file compiles as-is, and is meant to check that the patterns we're
@@ -349,6 +345,7 @@ impl ExtractGd for DynGd<Resource, dyn BrainParamsEnumDynEnumResource> {
 
 // #[derive(AsGdRes)] // commented out because this is not implemented yet, this is an example of what we want to be able to do
 pub struct EnemyParams {
+    pub enemy_name: String,
     // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
     pub brain_params_required: OnEditorInit<BrainParams>,
     // this field has no attrs, `derive(AsGdRes)` should add the `#[export]` attribute
@@ -376,6 +373,9 @@ pub struct EnemyParamsResource {
     base: Base<Resource>,
 
     #[export]
+    pub enemy_name: <String as AsGdRes>::ResType,
+
+    #[export]
     pub brain_params_required: <OnEditorInit<BrainParams> as AsGdRes>::ResType,
     #[export]
     pub brain_params_optional: <Option<BrainParams> as AsGdRes>::ResType,
@@ -392,6 +392,7 @@ impl ExtractGd for EnemyParamsResource {
     type Extracted = EnemyParams;
     fn extract(&self) -> Self::Extracted {
         Self::Extracted {
+            enemy_name: self.enemy_name.extract(),
             brain_params_required: self.brain_params_required.extract(),
             brain_params_optional: self.brain_params_optional.extract(),
             brains_vec: self.brains_vec.extract(),

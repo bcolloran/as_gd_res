@@ -1,5 +1,5 @@
 [package]
-name = "extract_gd"
+name = "as_gd_res"
 version = "0.1.0"
 edition = "2021"
 
