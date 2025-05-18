@@ -74,23 +74,25 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
             }
         }
         Data::Enum(data) => {
-            // Check variants
+            // Determine valid shapes and collect invalid variants
             let mut unit_only = true;
             let mut single_tuple = true;
+            let mut invalid = Vec::new();
             for var in data.variants.iter() {
                 match &var.fields {
                     Fields::Unit => {}
                     Fields::Unnamed(u) if u.unnamed.len() == 1 => {
                         unit_only = false;
                     }
-                    _ => {
+                    _other => {
                         unit_only = false;
                         single_tuple = false;
+                        invalid.push(var.ident.to_string());
                     }
                 }
             }
 
-            let tokens = if unit_only {
+            if unit_only {
                 // unit-only enum
                 quote! {
                     impl AsGdRes for #name {
@@ -114,9 +116,8 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                             let inner_ty = &fields.unnamed[0].ty;
                             let res_ident = match inner_ty {
                                 Type::Path(type_path) => {
-                                    let segment =
-                                        type_path.path.segments.last().unwrap().ident.clone();
-                                    format_ident!("{}Resource", segment)
+                                    let seg = &type_path.path.segments;
+                                    format_ident!("{}Resource", seg.last().unwrap().ident)
                                 }
                                 _ => format_ident!("{}Resource", var_ident),
                             };
@@ -146,12 +147,14 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                     }
                 }
             } else {
+                let msg = format!(
+                    "`derive(AsGdRes)` only supports unit enums or single-tuple enums. Unsupported variants: {}",
+                    invalid.join(", ")
+                );
                 quote! {
-                    compile_error!("AsGdRes only supports unit enums or single-tuple enums");
+                    compile_error!(#msg);
                 }
-            };
-
-            tokens.into()
+            }
         }
         _ => quote! {
             compile_error!("AsGdRes derive only supports plain structs in test mode");
