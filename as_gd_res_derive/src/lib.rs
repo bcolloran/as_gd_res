@@ -6,7 +6,7 @@ use syn::{parse_quote, Data, DeriveInput, Fields, Type};
 mod tests;
 
 /// A derive macro to emit a Godot-compatible resource struct + impls for a pure Rust struct.
-#[proc_macro_derive(AsGdRes, attributes(export, init, var))]
+#[proc_macro_derive(AsGdRes, attributes(export, init))]
 pub fn as_gd_res_derive(input: TokenStream) -> TokenStream {
     let derive_input = syn::parse_macro_input!(input as DeriveInput);
     let expanded = expand_as_gd_res(derive_input);
@@ -55,8 +55,8 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                     type ResType = ::godot::obj::Gd<#res_name>;
                 }
 
-                #[derive(::godot::obj::GodotClass)]
-                #[class(tool, init, base=::godot::classes::Resource)]
+                #[derive(::godot::prelude::GodotClass)]
+                #[class(tool,init,base=Resource)]
                 pub struct #res_name {
                     #[base]
                     base: ::godot::obj::Base<::godot::classes::Resource>,
@@ -157,8 +157,8 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
             }
         }
         _ => quote! {
-            compile_error!("AsGdRes derive only supports plain structs in test mode");
-        }
+        compile_error!("AsGdRes derive only supports structs with named fields, enums with unit variants, or enums with single-tuple variants");
+                }
         .into(),
     }
 }
