@@ -9,11 +9,11 @@ use godot::obj::{bounds, Bounds, Gd, GodotClass};
 use godot::prelude::*;
 
 pub trait AsGdRes {
-    type ResType: ExtractGd;
+    type ResType: ExtractGd + ?Sized;
 }
 
 pub trait ExtractGd {
-    type Extracted: Sized;
+    type Extracted;
     fn extract(&self) -> Self::Extracted;
 }
 
@@ -35,7 +35,7 @@ where
 
 /////// DynGd //////////
 
-impl<T> ExtractGd for DynGd<Resource, T>
+impl<T: ?Sized> ExtractGd for DynGd<Resource, T>
 where
     T: ExtractGd,
 {
@@ -107,6 +107,7 @@ impl ExtractGd for Gd<PackedScene> {
 impl<T> AsGdRes for OnEditorInit<T>
 where
     T: AsGdRes,
+    T::ResType: Sized,
 {
     type ResType = OnEditor<T::ResType>;
 }
@@ -134,6 +135,7 @@ where
 impl<T> AsGdRes for Option<T>
 where
     T: AsGdRes,
+    T::ResType: Sized,
 {
     type ResType = Option<T::ResType>;
 }
