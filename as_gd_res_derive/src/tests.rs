@@ -3,6 +3,24 @@ use pretty_assertions::assert_eq;
 use quote::quote;
 use syn::parse_quote;
 
+// # STRUCTS
+// For each field in a composite struct, if it includes any `#[export(...)]` or `#[init(...)]` attributes,
+// the generated `ResType` should include those attributes on the generated struct.
+// If the field has no attributes, we must add the `#[export]` attribute to the generated struct.
+//
+// # ENUMS
+// `#[derive(AsGdRes)]` only works on enums where either:
+// 1. all variants have a single, unnamed associated data type
+// -or-
+// 2. all variants are unit variants (i.e. no associated data)
+//
+// In any other case, the macro should emit an error saying that these conditions have not been met
+//
+// # NOTE:
+// There are limitations upstream in *godot-rust* (or really: in Godot itself) that prevent the representation of certain types. You'll need work arounds in at least these cases:
+// - `Option<{enum types}>`: If you want an "optional" enum, include a `None` variant in the enum itself, and set that as the default value.
+// - `Array<{enum types}>` are also not supported
+
 #[test]
 fn test_simple() {
     let input: syn::DeriveInput = parse_quote! {
@@ -17,8 +35,9 @@ fn test_simple() {
           type ResType = ::godot::obj::Gd<SimpleStructParamsResource>;
       }
 
-      #[derive(::godot::obj::GodotClass)]
-      #[class(tool, init, base=::godot::classes::Resource)]
+      #[derive(::godot::prelude::GodotClass)]
+      #[class(tool,init,base=Resource)]
+
       pub struct SimpleStructParamsResource {
           #[base]
           base: ::godot::obj::Base<::godot::classes::Resource>,
@@ -58,8 +77,9 @@ fn test_2() {
                 type ResType = ::godot::obj::Gd<DropParams2Resource>;
             }
 
-            #[derive(::godot::obj::GodotClass)]
-            #[class(tool, init, base=::godot::classes::Resource)]
+            #[derive(::godot::prelude::GodotClass)]
+            #[class(tool,init,base=Resource)]
+
             pub struct DropParams2Resource {
                 #[base]
                 base: ::godot::obj::Base<::godot::classes::Resource>,
@@ -110,8 +130,8 @@ fn test_attr_pass_through() {
           type ResType = ::godot::obj::Gd<DropParams2Resource>;
       }
 
-      #[derive(::godot::obj::GodotClass)]
-      #[class(tool, init, base=::godot::classes::Resource)]
+      #[derive(::godot::prelude::GodotClass)]
+      #[class(tool,init,base=Resource)]
       pub struct DropParams2Resource {
           #[base]
           base: ::godot::obj::Base<::godot::classes::Resource>,
@@ -175,41 +195,62 @@ fn test_simple_enum() {
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
 }
 
+/// For enums with data variants, we do the following:
+/// - Create a new trait called `{EnumName}ResourceExtractVariant` that has a method `extract_enum_variant`
+/// - Create a new type for the enum resource called `{EnumName}Resource`, which aliases `DynGd<Resource, dyn {EnumName}ResourceExtractVariant>`
+/// - Implement `AsGdRes` for the enum, which returns the new resource type
+/// - Implement `ExtractGd` for the new resource type, which extracts the resource back to the input enum
+/// - For each enum variant, implement the `{EnumName}ResourceExtractVariant>` trait for the resource corresponding to the type in within the variant. It is up to the user to derive `AsGdRes` on the type inside each variant, which will create the resource type for that variant. (For example, if the enum has a variant `Money(MoneyData)`, the user must derive `AsGdRes` on `MoneyData` to create the resource type `MoneyDataResource`.). Each impl must be annotated with `#[godot_dyn]` for compatibility with `DynGd`.
+///
+/// Note that having
 #[test]
 fn test_enum_with_data_variants() {
     let input: syn::DeriveInput = parse_quote! {
-            pub enum BrainParams {
-                    Roomba(RoombaBrainParams),
-                    Tank(TankBrainParams),
-                }
+        pub enum Pickup {
+            Money(MoneyData),
+            PowerUp(PowerUpData),
+            Heal(HealData),
+        }
     };
 
     let expected = quote! {
-            pub trait BrainParamsDynEnumResource {
-                fn extract_enum_data(&self) -> BrainParams;
-            }
-            impl BrainParamsDynEnumResource for RoombaBrainParamsResource {
-                fn extract_enum_data(&self) -> BrainParams {
-                    BrainParams::Roomba(self.extract())
-                }
-            }
-            impl BrainParamsDynEnumResource for TankBrainParamsResource {
-                fn extract_enum_data(&self) -> BrainParams {
-                    BrainParams::Tank(self.extract())
-                }
-            }
+        pub trait PickupResourceExtractVariant {
+            fn extract_enum_variant(&self) -> Pickup;
+        }
 
-            impl AsGdRes for BrainParams {
-                type ResType = ::godot::obj::DynGd<::godot::classes::Resource, dyn BrainParamsDynEnumResource>;
-            }
+        type PickupResource =
+            ::godot::obj::DynGd<::godot::classes::Resource, dyn PickupResourceExtractVariant>;
 
-            impl ExtractGd for ::godot::obj::DynGd<::godot::classes::Resource, dyn BrainParamsDynEnumResource> {
-                type Extracted = BrainParams;
-                fn extract(&self) -> Self::Extracted {
-                    self.dyn_bind().extract_enum_data()
-                }
-            }
+        impl AsGdRes for Pickup {
+            type ResType = PickupResource;
+        }
 
+        impl ExtractGd for dyn PickupResourceExtractVariant {
+            type Extracted = Pickup;
+            fn extract(&self) -> Self::Extracted {
+                self.extract_enum_variant()
+            }
+        }
+
+        #[godot_dyn]
+        impl PickupResourceExtractVariant for MoneyDataResource {
+            fn extract_enum_variant(&self) -> Pickup {
+                Pickup::Money(self.extract())
+            }
+        }
+        #[godot_dyn]
+        impl PickupResourceExtractVariant for PowerUpDataResource {
+            fn extract_enum_variant(&self) -> Pickup {
+                Pickup::PowerUp(self.extract())
+            }
+        }
+
+        #[godot_dyn]
+        impl PickupResourceExtractVariant for HealDataResource {
+            fn extract_enum_variant(&self) -> Pickup {
+                Pickup::Heal(self.extract())
+            }
+        }
     };
 
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
@@ -234,8 +275,9 @@ fn test_complex_nested_struct() {
             type ResType = ::godot::obj::Gd<EnemyParamsResource>;
         }
 
-        #[derive(::godot::obj::GodotClass)]
-        #[class(tool, init, base=::godot::classes::Resource)]
+        #[derive(::godot::prelude::GodotClass)]
+        #[class(tool,init,base=Resource)]
+
         pub struct EnemyParamsResource {
             #[base]
             base: ::godot::obj::Base<::godot::classes::Resource>,

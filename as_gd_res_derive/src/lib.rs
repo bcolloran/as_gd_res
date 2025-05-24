@@ -9,8 +9,7 @@ mod tests;
 #[proc_macro_derive(AsGdRes, attributes(export, init))]
 pub fn as_gd_res_derive(input: TokenStream) -> TokenStream {
     let derive_input = syn::parse_macro_input!(input as DeriveInput);
-    let expanded = expand_as_gd_res(derive_input);
-    TokenStream::from(expanded)
+    TokenStream::from(expand_as_gd_res(derive_input))
 }
 
 fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
@@ -24,27 +23,21 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
 
             for field in data.fields.iter() {
                 let ident = field.ident.as_ref().unwrap();
-                // clone export/init/var attrs or inject #[export]
+                // clone export/init attrs or inject #[export]
                 let mut attrs = field
                     .attrs
                     .iter()
-                    .filter(|a| {
-                        a.path().is_ident("export")
-                            || a.path().is_ident("init")
-                            || a.path().is_ident("var")
-                    })
+                    .filter(|a| a.path().is_ident("export") || a.path().is_ident("init"))
                     .cloned()
                     .collect::<Vec<_>>();
                 if attrs.is_empty() {
                     attrs.push(parse_quote!(#[export]));
                 }
                 let ty = &field.ty;
-                // resource struct field
                 field_defs.push(quote! {
                     #(#attrs)*
                     pub #ident: <#ty as AsGdRes>::ResType,
                 });
-                // extraction mapping
                 extract_fields.push(quote! {
                     #ident: self.#ident.extract(),
                 });
@@ -84,7 +77,7 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                     Fields::Unnamed(u) if u.unnamed.len() == 1 => {
                         unit_only = false;
                     }
-                    _other => {
+                    _ => {
                         unit_only = false;
                         single_tuple = false;
                         invalid.push(var.ident.to_string());
@@ -107,8 +100,8 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                 }
             } else if single_tuple {
                 // single-tuple variants only
-                let dyn_trait = format_ident!("{}DynEnumResource", name);
-                let mut enum_trait_impls = Vec::new();
+                let dyn_trait = format_ident!("{}ResourceExtractVariant", name);
+                let mut variant_impls = Vec::new();
                 for var in data.variants.iter() {
                     if let Fields::Unnamed(fields) = &var.fields {
                         if fields.unnamed.len() == 1 {
@@ -116,14 +109,16 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                             let inner_ty = &fields.unnamed[0].ty;
                             let res_ident = match inner_ty {
                                 Type::Path(type_path) => {
-                                    let seg = &type_path.path.segments;
-                                    format_ident!("{}Resource", seg.last().unwrap().ident)
+                                    let segment =
+                                        type_path.path.segments.last().unwrap().ident.clone();
+                                    format_ident!("{}Resource", segment)
                                 }
                                 _ => format_ident!("{}Resource", var_ident),
                             };
-                            enum_trait_impls.push(quote! {
+                            variant_impls.push(quote! {
+                                #[godot_dyn]
                                 impl #dyn_trait for #res_ident {
-                                    fn extract_enum_data(&self) -> #name {
+                                    fn extract_enum_variant(&self) -> #name {
                                         #name::#var_ident(self.extract())
                                     }
                                 }
@@ -133,18 +128,23 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                 }
                 quote! {
                     pub trait #dyn_trait {
-                        fn extract_enum_data(&self) -> #name;
+                        fn extract_enum_variant(&self) -> #name;
                     }
-                    #(#enum_trait_impls)*
+
+                    type #res_name = ::godot::obj::DynGd<::godot::classes::Resource, dyn #dyn_trait>;
+
                     impl AsGdRes for #name {
-                        type ResType = ::godot::obj::DynGd<::godot::classes::Resource, dyn #dyn_trait>;
+                        type ResType = #res_name;
                     }
-                    impl ExtractGd for ::godot::obj::DynGd<::godot::classes::Resource, dyn #dyn_trait> {
+
+                    impl ExtractGd for dyn #dyn_trait {
                         type Extracted = #name;
                         fn extract(&self) -> Self::Extracted {
-                            self.dyn_bind().extract_enum_data()
+                            self.extract_enum_variant()
                         }
                     }
+
+                    #(#variant_impls)*
                 }
             } else {
                 let msg = format!(
@@ -157,8 +157,8 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
             }
         }
         _ => quote! {
-        compile_error!("AsGdRes derive only supports structs with named fields, enums with unit variants, or enums with single-tuple variants");
-                }
+            compile_error!("AsGdRes derive only supports structs with named fields, enums with unit variants, or enums with single-tuple variants");
+        }
         .into(),
     }
 }
