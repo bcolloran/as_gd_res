@@ -1,0 +1,28 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # install Rust toolchain
+    - uses: actions/setup-rust@v1
+      with:
+        rust-version: stable
+
+    - name: Build all crates
+      run: cargo build --workspace --all-targets --verbose
+
+    - name: Test all crates
+      run: cargo test --workspace --all-targets --verbose
