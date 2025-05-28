@@ -1,0 +1,8 @@
+[workspace]
+members = [
+  "as_gd_res",
+  "as_gd_res_derive",
+  "as_simple_gd_enum_derive",
+  "extract_gd_derive",
+  "resource_test_rust",
+]
