@@ -4,12 +4,7 @@ pub mod engine_type_impls;
 pub mod impl_wrapped_as_gd_res;
 
 pub use as_gd_res_derive::*;
-// use godot::meta::ArrayElement;
 
-use engine_type_impls::RustCurve;
-use godot::classes::class_macros::sys::GodotNullableFfi;
-use godot::classes::Curve;
-use godot::meta::{ArrayElement, GodotType};
 use godot::obj::{bounds, Bounds, Gd, GodotClass};
 use godot::prelude::*;
 
@@ -89,44 +84,7 @@ where
     }
 }
 
-//////////////
-// Manual impls for core types
-//////////////
-
-/////// String <-> GString //////////
-
-impl AsGdRes for String {
-    type ResType = GString;
-    // type WrappedType = GString;
-}
-impl ExtractGd for GString {
-    type Extracted = String;
-    fn extract(&self) -> Self::Extracted {
-        self.to_string()
-    }
-}
-
-/////// PackedScenePath <-> Gd<PackedScene> //////////
-
-/////// OnEditorInit <-> OnEditor //////////
-
-// impl<T> AsGdRes for OnEditorInitUser<T>
-// where
-//     T: AsGdRes,
-//     T::ResType: Sized,
-// {
-//     type ResType = OnEditor<T::ResType>;
-// }
-
-// #[derive(Clone, Debug, PartialEq, Eq)]
-// pub struct OnEditorInitUser<T>(pub T);
-
-// impl<T> Deref for OnEditorInitUser<T> {
-//     type Target = T;
-//     fn deref(&self) -> &Self::Target {
-//         &self.0
-//     }
-// }
+/////// OnEditor //////////
 
 impl<T> ExtractGd for OnEditor<T>
 where
@@ -150,17 +108,6 @@ where
     type ResType = T::GdOption;
 }
 
-// impl<T> AsGdRes for Option<T>
-// where
-//     T: AsGdRes,
-//     T::ResType: GodotType + FromGodot + Sized,
-//     <<T::ResType as GodotConvert>::Via as GodotType>::Ffi: GodotNullableFfi,
-//     for<'f> <<T::ResType as godot::prelude::GodotConvert>::Via as GodotType>::ToFfi<'f>:
-//         GodotNullableFfi,
-// {
-//     type ResType = Option<T::ResType>;
-// }
-
 impl<T> ExtractGd for Option<T>
 where
     T: ExtractGd,
@@ -172,15 +119,6 @@ where
 }
 
 /////// Vec <-> Array //////////
-
-// impl<T> AsGdRes for Vec<T>
-// where
-//     T: AsGdRes,
-//     T::ResType: ArrayElement,
-// {
-//     type ResType = Array<T::ResType>;
-// }
-
 pub trait AsGdResArray: Clone {
     type GdArray: ExtractGd + Export;
 }

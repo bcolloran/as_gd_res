@@ -2,7 +2,6 @@ use as_gd_res::engine_type_impls::PackedScenePath;
 use as_gd_res::engine_type_impls::RustCurve;
 use as_gd_res::AsGdRes;
 use as_gd_res::ExtractGd;
-// use godot::classes::Curve;
 use godot::prelude::*;
 
 struct ResourceTestExtension;
@@ -17,13 +16,8 @@ struct TestNode {
     #[export]
     test_int: i32,
 
-    //
-    // #[export]
-    // test_int_opt: Option<i32>,
     #[export]
     test_gstring: GString,
-    // #[export]
-    // // test_simple_res: OnEditor<Gd<SimpleDataResource>>,
     #[export]
     test_simple_res: <SimpleData as AsGdRes>::ResType,
     #[export]
@@ -54,7 +48,17 @@ pub struct SimpleData {
     pub int_vec: Vec<u8>,
 }
 
-/////////// Enum example
+/////////// Simple enum example
+
+// #[derive(AsGdRes, Debug, Clone)]
+// pub enum SimpleEnum {
+//     Fire,
+//     Water,
+//     Earth,
+//     Air,
+// }
+
+/////////// Enum with data example
 
 #[derive(AsGdRes, Debug, Clone)]
 pub struct MoneyData {
@@ -104,78 +108,3 @@ pub struct Complicated {
     pub nested_simple_option: Option<SimpleData>,
     pub array_simple: Vec<SimpleData>,
 }
-
-// trait GdWrapper {
-//     type WrType<T>;
-// }
-
-// impl GdWrapper for u8 {
-//     type WrType<T> = u8;
-// }
-
-// impl GdWrapper for Pickup {
-//     type WrType<T> = Option<T>;
-// }
-
-// #[derive(GodotClass)]
-// #[class(init, base=Resource)]
-// pub struct ComplicatedResource {
-//     base: Base<Resource>,
-
-//     #[export]
-//     value: <i32 as AsGdRes>::ResType,
-//     #[export]
-//     int_vec: <Vec<u8> as AsGdRes>::ResType,
-
-//     #[export]
-//     nested_enum: <Pickup as AsGdRes>::ResType,
-//     #[export]
-//     nested_enum_option_1: Option<<Pickup as AsGdRes>::ResType>,
-//     #[export]
-//     nested_enum_option_2: Option<<Pickup as AsGdRes>::ResType>,
-//     #[export]
-//     array_enums: Array<<Pickup as AsGdRes>::ResType>,
-
-//     #[export]
-//     curve: <RustCurve as AsGdRes>::ResType,
-
-//     #[export]
-//     nested_simple: OnEditor<<SimpleData as AsGdRes>::ResType>,
-//     #[export]
-//     nested_simple_option: Option<<SimpleData as AsGdRes>::ResType>,
-//     #[export]
-//     array_simple: Array<<SimpleData as AsGdRes>::ResType>,
-// }
-
-// impl AsGdRes for Complicated {
-//     type ResType = OnEditor<Gd<ComplicatedResource>>;
-// }
-
-// impl AsGdRes for Option<Complicated> {
-//     type ResType = Option<Gd<ComplicatedResource>>;
-// }
-
-// // trait OptionalComplicatedResource: AsGdRes<ResType = Option<Gd<ComplicatedResource>>> {}
-
-// // impl<T: OptionalComplicatedResource> AsGdRes for  {
-// //     type ResType = Option<Gd<ComplicatedResource>>;
-// // }
-
-// impl ExtractGd for ComplicatedResource {
-//     type Extracted = Complicated;
-
-//     fn extract(&self) -> Self::Extracted {
-//         Complicated {
-//             value: self.value.extract(),
-//             int_vec: self.int_vec.extract(),
-
-//             nested_enum: self.nested_enum.extract(),
-//             nested_enum_option_1: self.nested_enum_option_1.extract(),
-//             nested_enum_option_2: self.nested_enum_option_2.extract(),
-//             array_enums: self.array_enums.extract(),
-//             nested_simple: self.nested_simple.extract(),
-//             nested_simple_option: self.nested_simple_option.extract(),
-//             array_simple: self.array_simple.extract(),
-//         }
-//     }
-// }
