@@ -3,7 +3,10 @@ pub mod engine_type_impls;
 
 pub mod impl_wrapped_as_gd_res;
 
+use std::fmt::Debug;
+
 pub use as_gd_res_derive::*;
+pub use as_simple_gd_enum_derive::*;
 
 use godot::obj::{bounds, Bounds, Gd, GodotClass};
 use godot::prelude::*;
@@ -14,6 +17,14 @@ pub trait ExportWrapper<T: ?Sized>: Export {
 
 pub trait AsGdRes: Clone {
     type ResType: ExtractGd + ?Sized;
+}
+
+pub trait AsSimpleGdEnum: Clone + Copy + Default + Debug + PartialEq + Eq {
+    type GdEnumType: ExtractGd + ?Sized;
+}
+
+impl<T: AsSimpleGdEnum> AsGdRes for T {
+    type ResType = <T as AsSimpleGdEnum>::GdEnumType;
 }
 
 pub trait ExtractGd {

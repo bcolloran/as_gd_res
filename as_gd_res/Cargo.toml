@@ -11,6 +11,7 @@ default = []
 [dependencies]
 # extract_gd_derive = { path = "../extract_gd_derive" }
 as_gd_res_derive = { path = "../as_gd_res_derive" }
+as_simple_gd_enum_derive = { path = "../as_simple_gd_enum_derive" }
 
 godot = { path = "/data/code_projects/rust/gdext/godot", features = [
   "register-docs",

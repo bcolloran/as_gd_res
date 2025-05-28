@@ -1,6 +1,7 @@
 use as_gd_res::engine_type_impls::PackedScenePath;
 use as_gd_res::engine_type_impls::RustCurve;
 use as_gd_res::AsGdRes;
+use as_gd_res::AsSimpleGdEnum;
 use as_gd_res::ExtractGd;
 use godot::prelude::*;
 
@@ -13,15 +14,13 @@ unsafe impl ExtensionLibrary for ResourceTestExtension {}
 #[class(init, base=Node)]
 struct TestNode {
     base: Base<Node>,
-    #[export]
-    test_int: i32,
 
-    #[export]
-    test_gstring: GString,
     #[export]
     test_simple_res: <SimpleData as AsGdRes>::ResType,
     #[export]
-    some_enum: <Pickup as AsGdRes>::ResType,
+    test_simple_enum: <SimpleEnum as AsGdRes>::ResType,
+    #[export]
+    enum_with_data: <Pickup as AsGdRes>::ResType,
     #[export]
     crazy_nested_resource: <Complicated as AsGdRes>::ResType,
 }
@@ -32,7 +31,7 @@ impl INode for TestNode {
     fn ready(&mut self) {
         godot_print!("TestNode is ready!");
         godot_print!("test_simple_res: {:?}", self.test_simple_res.extract());
-        godot_print!("some_enum: {:?}", self.some_enum.extract());
+        godot_print!("enum_with_data: {:?}", self.enum_with_data.extract());
         godot_print!(
             "crazy_nested_resource: {:?}",
             self.crazy_nested_resource.extract()
@@ -40,7 +39,7 @@ impl INode for TestNode {
     }
 }
 
-/////////// Simple example
+/////////// Simple struct
 #[derive(AsGdRes, Debug, Clone)]
 pub struct SimpleData {
     pub name: String,
@@ -48,17 +47,19 @@ pub struct SimpleData {
     pub int_vec: Vec<u8>,
 }
 
-/////////// Simple enum example
+/////////// Simple enum
+// NOTE: godot-rust currently doesn't support wrapping enums in Array<_> or Option<_>. (If you want an enum to be optional, you can include a 'None' variant)
 
-// #[derive(AsGdRes, Debug, Clone)]
-// pub enum SimpleEnum {
-//     Fire,
-//     Water,
-//     Earth,
-//     Air,
-// }
+#[derive(AsSimpleGdEnum, Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SimpleEnum {
+    #[default]
+    Fire,
+    Water,
+    Earth,
+    Air,
+}
 
-/////////// Enum with data example
+/////////// Enum with data
 
 #[derive(AsGdRes, Debug, Clone)]
 pub struct MoneyData {
@@ -84,10 +85,9 @@ pub enum Pickup {
     Heal(HealData),
 }
 
-/////////// Complicated example
+/////////// Complicated struct
 #[derive(AsGdRes, Clone, Debug)]
 pub struct Complicated {
-    // pub simple: SimpleData,
     pub value: i32,
     pub int_vec: Vec<u8>,
 
@@ -107,4 +107,6 @@ pub struct Complicated {
     pub nested_simple: SimpleData,
     pub nested_simple_option: Option<SimpleData>,
     pub array_simple: Vec<SimpleData>,
+
+    pub simple_enum: SimpleEnum,
 }

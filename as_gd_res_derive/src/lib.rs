@@ -85,19 +85,24 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
 
             if all_unit {
                 quote! {
-                    impl ::as_gd_res::AsGdRes for #name {
-                        type ResType = #name;
+
+
+                compile_error!(
+                    "`derive(AsGdRes)` only or enums with single-tuple variants, not unit variants. Did you mean to use `derive(AsSimpleGdEnum)`?"
+                );
+                        // impl ::as_gd_res::AsGdRes for #name {
+                        //     type ResType = #name;
+                        // }
+                        // impl ::as_gd_res::AsGdResArray for #name {
+                        //     type GdArray = ::godot::prelude::Array<::godot::obj::Gd<#name>>;
+                        // }
+                        // impl ExtractGd for #name {
+                        //     type Extracted = #name;
+                        //     fn extract(&self) -> Self::Extracted {
+                        //         self.clone()
+                        //     }
+                        // }
                     }
-                    impl ::as_gd_res::AsGdResArray for #name {
-                        type GdArray = ::godot::prelude::Array<::godot::obj::Gd<#name>>;
-                    }
-                    impl ExtractGd for #name {
-                        type Extracted = #name;
-                        fn extract(&self) -> Self::Extracted {
-                            self.clone()
-                        }
-                    }
-                }
             } else if all_tuple1 {
                 let dyn_trait = format_ident!("{}ResourceExtractVariant", name);
                 let mut variant_impls = Vec::new();
@@ -161,7 +166,7 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                     .collect::<Vec<_>>()
                     .join(", ");
                 let msg = format!(
-                    "`derive(::as_gd_res::AsGdRes)` only supports unit enums or single-tuple enums. Unsupported variants: {}",
+                    "`derive(AsGdRes)` only supports unit enums or single-tuple enums. Unsupported variants: {}",
                     invalid
                 );
                 quote! { compile_error!(#msg); }
@@ -169,7 +174,7 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
         }
         _ => quote! {
             compile_error!(
-                "::as_gd_res::AsGdRes derive only supports structs with named fields, enums with unit variants, or enums with single-tuple variants"
+                "`derive(AsGdRes)` only supports structs with named fields, enums with unit variants, or enums with single-tuple variants"
             );
         },
     }

@@ -7,7 +7,7 @@ name = "sdfadf"
 value = 34
 int_vec = Array[int]([1, 2, 3, 4])
 
-[sub_resource type="HealDataResource" id="HealDataResource_uhqqe"]
+[sub_resource type="PowerUpDataResource" id="PowerUpDataResource_uhqqe"]
 
 [sub_resource type="SimpleDataResource" id="SimpleDataResource_ia1lp"]
 name = "a"
@@ -50,10 +50,11 @@ curve_array = Array[Curve]([SubResource("Curve_2nij2"), SubResource("Curve_7cbxl
 path = ExtResource("1_uhqqe")
 nested_simple = SubResource("SimpleDataResource_vr1i5")
 array_simple = Array[SimpleDataResource]([SubResource("SimpleDataResource_ia1lp"), SubResource("SimpleDataResource_sasra")])
+simple_enum = "Earth"
 
 [node name="Node2D" type="Node2D"]
 
 [node name="TestNode" type="TestNode" parent="."]
 test_simple_res = SubResource("SimpleDataResource_6adnx")
-some_enum = SubResource("HealDataResource_uhqqe")
+enum_with_data = SubResource("PowerUpDataResource_uhqqe")
 crazy_nested_resource = SubResource("ComplicatedResource_rpuu0")

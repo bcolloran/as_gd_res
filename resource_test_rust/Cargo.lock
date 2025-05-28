@@ -16,11 +16,21 @@ name = "as_gd_res"
 version = "0.1.0"
 dependencies = [
  "as_gd_res_derive",
+ "as_simple_gd_enum_derive",
  "godot",
 ]
 
 [[package]]
 name = "as_gd_res_derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "as_simple_gd_enum_derive"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",

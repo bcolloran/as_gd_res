@@ -205,20 +205,32 @@ fn test_simple_enum() {
     };
 
     let expected = quote! {
-            impl ::as_gd_res::AsGdRes for DamageTeam {
-                type ResType = DamageTeam;
-            }
+        compile_error!(
+                    "`derive(AsGdRes)` only or enums with single-tuple variants, not unit variants. Did you mean to use `derive(AsSimpleGdEnum)`?"
+                );
+            // #[derive(Default, Clone, Copy, GodotConvert, Var, Export)]
+            // #[godot(via = ::godot::builtin::GString)]
+            // pub enum DamageTeam {
+            //     #[default]
+            //     Player,
+            //     Enemy,
+            //     Environment,
+            // }
 
-            impl ::as_gd_res::AsGdResArray for DamageTeam {
-                type GdArray = ::godot::prelude::Array<::godot::obj::Gd<DamageTeam>>;
-            }
+            // impl ::as_gd_res::AsGdRes for DamageTeam {
+            //     type ResType = DamageTeam;
+            // }
 
-            impl ExtractGd for DamageTeam {
-                type Extracted = DamageTeam;
-                fn extract(&self) -> Self::Extracted {
-                    self.clone()
-                }
-            }
+            // impl ::as_gd_res::AsGdResArray for DamageTeam {
+            //     type GdArray = ::godot::prelude::Array<::godot::obj::Gd<DamageTeam>>;
+            // }
+
+            // impl ExtractGd for DamageTeam {
+            //     type Extracted = DamageTeam;
+            //     fn extract(&self) -> Self::Extracted {
+            //         self.clone()
+            //     }
+            // }
 
     };
 
