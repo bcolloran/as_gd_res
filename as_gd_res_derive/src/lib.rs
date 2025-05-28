@@ -18,34 +18,40 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
 
     match input.data {
         Data::Struct(data) => {
-            let mut field_defs = Vec::new();
-            let mut extract_fields = Vec::new();
-
+            let mut defs = Vec::new();
+            let mut extracts = Vec::new();
             for field in data.fields.iter() {
-                let ident = field.ident.as_ref().unwrap();
-                // clone export/init attrs or inject #[export]
-                let mut attrs = field
-                    .attrs
-                    .iter()
-                    .filter(|a| a.path().is_ident("export") || a.path().is_ident("init"))
-                    .cloned()
-                    .collect::<Vec<_>>();
-                if attrs.is_empty() {
-                    attrs.push(parse_quote!(#[export]));
+                if let Some(ident) = &field.ident {
+                    // clone export/init attrs or inject #[export]
+                    let mut attrs = field
+                        .attrs
+                        .iter()
+                        .filter(|a| a.path().is_ident("export") || a.path().is_ident("init"))
+                        .cloned()
+                        .collect::<Vec<_>>();
+                    if attrs.is_empty() {
+                        attrs.push(parse_quote!(#[export]));
+                    }
+                    let ty = &field.ty;
+                    defs.push(quote! {
+                        #(#attrs)*
+                        pub #ident: <#ty as ::as_gd_res::AsGdRes>::ResType,
+                    });
+                    extracts.push(quote! {
+                        #ident: self.#ident.extract(),
+                    });
                 }
-                let ty = &field.ty;
-                field_defs.push(quote! {
-                    #(#attrs)*
-                    pub #ident: <#ty as AsGdRes>::ResType,
-                });
-                extract_fields.push(quote! {
-                    #ident: self.#ident.extract(),
-                });
             }
 
             quote! {
-                impl AsGdRes for #name {
-                    type ResType = ::godot::obj::Gd<#res_name>;
+                impl ::as_gd_res::AsGdRes for #name {
+                    type ResType = ::godot::prelude::OnEditor<::godot::obj::Gd<#res_name>>;
+                }
+                impl ::as_gd_res::AsGdResOpt for #name {
+                    type GdOption = Option<::godot::obj::Gd<#res_name>>;
+                }
+                impl ::as_gd_res::AsGdResArray for #name {
+                    type GdArray = ::godot::prelude::Array<::godot::obj::Gd<#res_name>>;
                 }
 
                 #[derive(::godot::prelude::GodotClass)]
@@ -53,43 +59,37 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                 pub struct #res_name {
                     #[base]
                     base: ::godot::obj::Base<::godot::classes::Resource>,
-                    #(#field_defs)*
+                    #(#defs)*
                 }
 
                 impl ExtractGd for #res_name {
                     type Extracted = #name;
                     fn extract(&self) -> Self::Extracted {
                         Self::Extracted {
-                            #(#extract_fields)*
+                            #(#extracts)*
                         }
                     }
                 }
             }
         }
         Data::Enum(data) => {
-            // Determine valid shapes and collect invalid variants
-            let mut unit_only = true;
-            let mut single_tuple = true;
-            let mut invalid = Vec::new();
-            for var in data.variants.iter() {
-                match &var.fields {
-                    Fields::Unit => {}
-                    Fields::Unnamed(u) if u.unnamed.len() == 1 => {
-                        unit_only = false;
-                    }
-                    _ => {
-                        unit_only = false;
-                        single_tuple = false;
-                        invalid.push(var.ident.to_string());
-                    }
-                }
-            }
+            // check enum variant shapes
+            let all_unit = data
+                .variants
+                .iter()
+                .all(|v| matches!(&v.fields, Fields::Unit));
+            let all_tuple1 = data
+                .variants
+                .iter()
+                .all(|v| matches!(&v.fields, Fields::Unnamed(u) if u.unnamed.len()==1));
 
-            if unit_only {
-                // unit-only enum
+            if all_unit {
                 quote! {
-                    impl AsGdRes for #name {
+                    impl ::as_gd_res::AsGdRes for #name {
                         type ResType = #name;
+                    }
+                    impl ::as_gd_res::AsGdResArray for #name {
+                        type GdArray = ::godot::prelude::Array<::godot::obj::Gd<#name>>;
                     }
                     impl ExtractGd for #name {
                         type Extracted = #name;
@@ -98,34 +98,31 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                         }
                     }
                 }
-            } else if single_tuple {
-                // single-tuple variants only
+            } else if all_tuple1 {
                 let dyn_trait = format_ident!("{}ResourceExtractVariant", name);
                 let mut variant_impls = Vec::new();
-                for var in data.variants.iter() {
+                for var in &data.variants {
                     if let Fields::Unnamed(fields) = &var.fields {
-                        if fields.unnamed.len() == 1 {
-                            let var_ident = &var.ident;
-                            let inner_ty = &fields.unnamed[0].ty;
-                            let res_ident = match inner_ty {
-                                Type::Path(type_path) => {
-                                    let segment =
-                                        type_path.path.segments.last().unwrap().ident.clone();
-                                    format_ident!("{}Resource", segment)
+                        let var_ident = &var.ident;
+                        let ty = &fields.unnamed[0].ty;
+                        let variant_res = match ty {
+                            Type::Path(tp) => {
+                                let seg = tp.path.segments.last().unwrap().ident.clone();
+                                format_ident!("{}Resource", seg)
+                            }
+                            _ => format_ident!("{}Resource", var_ident),
+                        };
+                        variant_impls.push(quote! {
+                            #[godot_dyn]
+                            impl #dyn_trait for #variant_res {
+                                fn extract_enum_variant(&self) -> #name {
+                                    #name::#var_ident(self.extract())
                                 }
-                                _ => format_ident!("{}Resource", var_ident),
-                            };
-                            variant_impls.push(quote! {
-                                #[godot_dyn]
-                                impl #dyn_trait for #res_ident {
-                                    fn extract_enum_variant(&self) -> #name {
-                                        #name::#var_ident(self.extract())
-                                    }
-                                }
-                            });
-                        }
+                            }
+                        });
                     }
                 }
+
                 quote! {
                     pub trait #dyn_trait {
                         fn extract_enum_variant(&self) -> #name;
@@ -133,8 +130,14 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
 
                     type #res_name = ::godot::obj::DynGd<::godot::classes::Resource, dyn #dyn_trait>;
 
-                    impl AsGdRes for #name {
-                        type ResType = #res_name;
+                    impl ::as_gd_res::AsGdRes for #name {
+                        type ResType = ::godot::prelude::OnEditor<#res_name>;
+                    }
+                    impl ::as_gd_res::AsGdResOpt for #name {
+                        type GdOption = Option<#res_name>;
+                    }
+                    impl ::as_gd_res::AsGdResArray for #name {
+                        type GdArray = ::godot::prelude::Array<#res_name>;
                     }
 
                     impl ExtractGd for dyn #dyn_trait {
@@ -147,18 +150,27 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                     #(#variant_impls)*
                 }
             } else {
+                let invalid = data
+                    .variants
+                    .iter()
+                    .filter_map(|v| match &v.fields {
+                        Fields::Unnamed(u) if u.unnamed.len() == 1 => None,
+                        Fields::Unit => None,
+                        _ => Some(v.ident.to_string()),
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ");
                 let msg = format!(
-                    "`derive(AsGdRes)` only supports unit enums or single-tuple enums. Unsupported variants: {}",
-                    invalid.join(", ")
+                    "`derive(::as_gd_res::AsGdRes)` only supports unit enums or single-tuple enums. Unsupported variants: {}",
+                    invalid
                 );
-                quote! {
-                    compile_error!(#msg);
-                }
+                quote! { compile_error!(#msg); }
             }
         }
         _ => quote! {
-            compile_error!("AsGdRes derive only supports structs with named fields, enums with unit variants, or enums with single-tuple variants");
-        }
-        .into(),
+            compile_error!(
+                "::as_gd_res::AsGdRes derive only supports structs with named fields, enums with unit variants, or enums with single-tuple variants"
+            );
+        },
     }
 }

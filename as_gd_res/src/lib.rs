@@ -1,14 +1,23 @@
 pub mod copyable_base_type_impls;
+pub mod engine_type_impls;
+
+pub mod impl_wrapped_as_gd_res;
 
 pub use as_gd_res_derive::*;
-use godot::meta::ArrayElement;
+// use godot::meta::ArrayElement;
 
-use std::ops::Deref;
-
+use engine_type_impls::RustCurve;
+use godot::classes::class_macros::sys::GodotNullableFfi;
+use godot::classes::Curve;
+use godot::meta::{ArrayElement, GodotType};
 use godot::obj::{bounds, Bounds, Gd, GodotClass};
 use godot::prelude::*;
 
-pub trait AsGdRes {
+pub trait ExportWrapper<T: ?Sized>: Export {
+    type W;
+}
+
+pub trait AsGdRes: Clone {
     type ResType: ExtractGd + ?Sized;
 }
 
@@ -21,15 +30,50 @@ pub trait ExtractGd {
 // godot-rust smart pointers
 //////////////
 
-/////// DynGd //////////
+pub trait ExtractGdHelper<D: bounds::Declarer> {
+    type InnerExtracted;
+    fn extract_inner(&self) -> Self::InnerExtracted;
+}
+
+impl<T> ExtractGdHelper<bounds::DeclUser> for Gd<T>
+where
+    T: GodotClass + Bounds<Declarer = bounds::DeclUser> + ExtractGd,
+{
+    type InnerExtracted = <T as ExtractGd>::Extracted;
+    fn extract_inner(&self) -> Self::InnerExtracted {
+        T::extract(&self.bind())
+    }
+}
+
+pub trait ExtractGdEngineFn {
+    type GdType;
+    type Extracted;
+    fn extract_inner(gd: Self::GdType) -> Self::Extracted;
+}
+
+impl<T> ExtractGdHelper<bounds::DeclEngine> for Gd<T>
+where
+    T: GodotClass + Bounds<Declarer = bounds::DeclEngine> + ExtractGd + ExtractGdEngineFn,
+{
+    type InnerExtracted = <T as ExtractGd>::Extracted;
+    fn extract_inner(&self) -> Self::InnerExtracted {
+        T::extract(&self)
+    }
+}
+
+////////
+
+/////// Gd //////////
 
 impl<T> ExtractGd for Gd<T>
 where
-    T: ExtractGd + GodotClass + Bounds<Declarer = bounds::DeclUser>,
+    T: GodotClass + Bounds, // T has Bounds::Declarer associated type
+    Gd<T>: ExtractGdHelper<<T as Bounds>::Declarer>,
 {
-    type Extracted = T::Extracted;
+    type Extracted = <Gd<T> as ExtractGdHelper<T::Declarer>>::InnerExtracted;
     fn extract(&self) -> Self::Extracted {
-        T::extract(&self.bind())
+        // Delegate to the corresponding helper impl:
+        <Gd<T> as ExtractGdHelper<T::Declarer>>::extract_inner(self)
     }
 }
 
@@ -46,31 +90,6 @@ where
 }
 
 //////////////
-// impls for core cloneable types
-//////////////
-
-macro_rules! impl_extract_gd_cloneable {
-    ($($t:ty),*) => {
-        $(
-            impl ExtractGd for $t
-            where
-                $t: Clone,
-            {
-                type Extracted = Self;
-                fn extract(&self) -> Self::Extracted {
-                    self.clone()
-                }
-            }
-        )*
-    };
-    () => {
-
-    };
-}
-
-impl_extract_gd_cloneable!(String);
-
-//////////////
 // Manual impls for core types
 //////////////
 
@@ -78,6 +97,7 @@ impl_extract_gd_cloneable!(String);
 
 impl AsGdRes for String {
     type ResType = GString;
+    // type WrappedType = GString;
 }
 impl ExtractGd for GString {
     type Extracted = String;
@@ -88,57 +108,58 @@ impl ExtractGd for GString {
 
 /////// PackedScenePath <-> Gd<PackedScene> //////////
 
-pub struct PackedScenePath(pub String);
-
-impl AsGdRes for PackedScenePath {
-    type ResType = Gd<PackedScene>;
-}
-
-impl ExtractGd for Gd<PackedScene> {
-    type Extracted = PackedScenePath;
-    fn extract(&self) -> Self::Extracted {
-        let path = self.get_path();
-        PackedScenePath(path.to_string())
-    }
-}
-
 /////// OnEditorInit <-> OnEditor //////////
 
-impl<T> AsGdRes for OnEditorInit<T>
-where
-    T: AsGdRes,
-    T::ResType: Sized,
-{
-    type ResType = OnEditor<T::ResType>;
-}
+// impl<T> AsGdRes for OnEditorInitUser<T>
+// where
+//     T: AsGdRes,
+//     T::ResType: Sized,
+// {
+//     type ResType = OnEditor<T::ResType>;
+// }
 
-pub struct OnEditorInit<T>(pub T);
-impl<T> Deref for OnEditorInit<T> {
-    type Target = T;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+// #[derive(Clone, Debug, PartialEq, Eq)]
+// pub struct OnEditorInitUser<T>(pub T);
+
+// impl<T> Deref for OnEditorInitUser<T> {
+//     type Target = T;
+//     fn deref(&self) -> &Self::Target {
+//         &self.0
+//     }
+// }
 
 impl<T> ExtractGd for OnEditor<T>
 where
     T: ExtractGd,
 {
-    type Extracted = OnEditorInit<T::Extracted>;
+    type Extracted = T::Extracted;
     fn extract(&self) -> Self::Extracted {
-        OnEditorInit(T::extract(&self))
+        T::extract(&self)
     }
 }
 
 /////// OPTION //////////
+pub trait AsGdResOpt: Clone + Sized {
+    type GdOption: ExtractGd + Export;
+}
 
 impl<T> AsGdRes for Option<T>
 where
-    T: AsGdRes,
-    T::ResType: Sized,
+    T: AsGdResOpt + Sized,
 {
-    type ResType = Option<T::ResType>;
+    type ResType = T::GdOption;
 }
+
+// impl<T> AsGdRes for Option<T>
+// where
+//     T: AsGdRes,
+//     T::ResType: GodotType + FromGodot + Sized,
+//     <<T::ResType as GodotConvert>::Via as GodotType>::Ffi: GodotNullableFfi,
+//     for<'f> <<T::ResType as godot::prelude::GodotConvert>::Via as GodotType>::ToFfi<'f>:
+//         GodotNullableFfi,
+// {
+//     type ResType = Option<T::ResType>;
+// }
 
 impl<T> ExtractGd for Option<T>
 where
@@ -152,12 +173,23 @@ where
 
 /////// Vec <-> Array //////////
 
+// impl<T> AsGdRes for Vec<T>
+// where
+//     T: AsGdRes,
+//     T::ResType: ArrayElement,
+// {
+//     type ResType = Array<T::ResType>;
+// }
+
+pub trait AsGdResArray: Clone {
+    type GdArray: ExtractGd + Export;
+}
+
 impl<T> AsGdRes for Vec<T>
 where
-    T: AsGdRes,
-    T::ResType: ArrayElement,
+    T: AsGdResArray,
 {
-    type ResType = Array<T::ResType>;
+    type ResType = T::GdArray;
 }
 
 impl<T> ExtractGd for Array<T>

@@ -7,16 +7,18 @@ use syn::parse_quote;
 // For each field in a composite struct, if it includes any `#[export(...)]` or `#[init(...)]` attributes,
 // the generated `ResType` should include those attributes on the generated struct.
 // If the field has no attributes, we must add the `#[export]` attribute to the generated struct.
+// ## Notes:
+// - The derive macro should not support generics, so the input struct should not have any generic parameters.
 //
 // # ENUMS
-// `#[derive(AsGdRes)]` only works on enums where either:
+// `#[derive(::as_gd_res::AsGdRes)]` only works on enums where either:
 // 1. all variants have a single, unnamed associated data type
 // -or-
 // 2. all variants are unit variants (i.e. no associated data)
 //
 // In any other case, the macro should emit an error saying that these conditions have not been met
 //
-// # NOTE:
+// # NOTES:
 // There are limitations upstream in *godot-rust* (or really: in Godot itself) that prevent the representation of certain types. You'll need work arounds in at least these cases:
 // - `Option<{enum types}>`: If you want an "optional" enum, include a `None` variant in the enum itself, and set that as the default value.
 // - `Array<{enum types}>` are also not supported
@@ -31,20 +33,27 @@ fn test_simple() {
     };
     let actual = expand_as_gd_res(input);
     let expected = quote! {
-      impl AsGdRes for SimpleStructParams {
-          type ResType = ::godot::obj::Gd<SimpleStructParamsResource>;
+      impl ::as_gd_res::AsGdRes for SimpleStructParams {
+          type ResType = ::godot::prelude::OnEditor<::godot::obj::Gd<SimpleStructParamsResource>>;
+      }
+
+      impl ::as_gd_res::AsGdResOpt for SimpleStructParams {
+          type GdOption = Option<::godot::obj::Gd<SimpleStructParamsResource>>;
+      }
+
+      impl ::as_gd_res::AsGdResArray for SimpleStructParams {
+          type GdArray = ::godot::prelude::Array<::godot::obj::Gd<SimpleStructParamsResource>>;
       }
 
       #[derive(::godot::prelude::GodotClass)]
       #[class(tool,init,base=Resource)]
-
       pub struct SimpleStructParamsResource {
           #[base]
           base: ::godot::obj::Base<::godot::classes::Resource>,
           #[export]
-          pub a: <f32 as AsGdRes>::ResType,
+          pub a: <f32 as ::as_gd_res::AsGdRes>::ResType,
           #[export]
-          pub b: <f32 as AsGdRes>::ResType,
+          pub b: <f32 as ::as_gd_res::AsGdRes>::ResType,
       }
 
       impl ExtractGd for SimpleStructParamsResource {
@@ -73,8 +82,16 @@ fn test_2() {
     let actual = expand_as_gd_res(input);
     let expected = quote! {
 
-            impl AsGdRes for DropParams2 {
-                type ResType = ::godot::obj::Gd<DropParams2Resource>;
+            impl ::as_gd_res::AsGdRes for DropParams2 {
+                type ResType = ::godot::prelude::OnEditor<::godot::obj::Gd<DropParams2Resource>>;
+            }
+
+            impl ::as_gd_res::AsGdResOpt for DropParams2 {
+                type GdOption = Option<::godot::obj::Gd<DropParams2Resource>>;
+            }
+
+            impl ::as_gd_res::AsGdResArray for DropParams2 {
+                type GdArray = ::godot::prelude::Array<::godot::obj::Gd<DropParams2Resource>>;
             }
 
             #[derive(::godot::prelude::GodotClass)]
@@ -84,13 +101,13 @@ fn test_2() {
                 #[base]
                 base: ::godot::obj::Base<::godot::classes::Resource>,
                 #[export]
-                pub total_value: <f32 as AsGdRes>::ResType,
+                pub total_value: <f32 as ::as_gd_res::AsGdRes>::ResType,
                 #[export]
-                pub max_value_per_coin: <f32 as AsGdRes>::ResType,
+                pub max_value_per_coin: <f32 as ::as_gd_res::AsGdRes>::ResType,
                 #[export]
-                pub coin_scene_1: <Option<PackedScenePath> as AsGdRes>::ResType,
+                pub coin_scene_1: <Option<PackedScenePath> as ::as_gd_res::AsGdRes>::ResType,
                 #[export]
-                pub coin_scene_2: <OnEditorInit<PackedScenePath> as AsGdRes>::ResType,
+                pub coin_scene_2: <OnEditorInit<PackedScenePath> as ::as_gd_res::AsGdRes>::ResType,
             }
 
             impl ExtractGd for DropParams2Resource {
@@ -126,9 +143,17 @@ fn test_attr_pass_through() {
     };
 
     let expected = quote! {
-      impl AsGdRes for DropParams2 {
-          type ResType = ::godot::obj::Gd<DropParams2Resource>;
-      }
+        impl ::as_gd_res::AsGdRes for DropParams2 {
+            type ResType = ::godot::prelude::OnEditor<::godot::obj::Gd<DropParams2Resource>>;
+        }
+
+        impl ::as_gd_res::AsGdResOpt for DropParams2 {
+            type GdOption = Option<::godot::obj::Gd<DropParams2Resource>>;
+        }
+
+        impl ::as_gd_res::AsGdResArray for DropParams2 {
+            type GdArray = ::godot::prelude::Array<::godot::obj::Gd<DropParams2Resource>>;
+        }
 
       #[derive(::godot::prelude::GodotClass)]
       #[class(tool,init,base=Resource)]
@@ -137,14 +162,14 @@ fn test_attr_pass_through() {
           base: ::godot::obj::Base<::godot::classes::Resource>,
           #[export(range = (100.0, 500.0))]
           #[init(val = 200.0)]
-          pub total_value: <f32 as AsGdRes>::ResType,
+          pub total_value: <f32 as ::as_gd_res::AsGdRes>::ResType,
           #[export(range = (0.0, 5.0))]
           #[init(val = 3.0)]
-          pub max_value_per_coin: <f32 as AsGdRes>::ResType,
+          pub max_value_per_coin: <f32 as ::as_gd_res::AsGdRes>::ResType,
           #[export]
-          pub coin_scene_1: <Option<PackedScenePath> as AsGdRes>::ResType,
+          pub coin_scene_1: <Option<PackedScenePath> as ::as_gd_res::AsGdRes>::ResType,
           #[export]
-          pub coin_scene_2: <OnEditorInit<PackedScenePath> as AsGdRes>::ResType,
+          pub coin_scene_2: <OnEditorInit<PackedScenePath> as ::as_gd_res::AsGdRes>::ResType,
       }
 
       impl ExtractGd for DropParams2Resource {
@@ -164,6 +189,7 @@ fn test_attr_pass_through() {
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
 }
 
+// NOTE: Option<{enum types}> is not supported, ::as_gd_res::AsGdRes not impled for that
 #[test]
 fn test_simple_enum() {
     let input: syn::DeriveInput = parse_quote! {
@@ -179,8 +205,12 @@ fn test_simple_enum() {
     };
 
     let expected = quote! {
-            impl AsGdRes for DamageTeam {
+            impl ::as_gd_res::AsGdRes for DamageTeam {
                 type ResType = DamageTeam;
+            }
+
+            impl ::as_gd_res::AsGdResArray for DamageTeam {
+                type GdArray = ::godot::prelude::Array<::godot::obj::Gd<DamageTeam>>;
             }
 
             impl ExtractGd for DamageTeam {
@@ -198,9 +228,9 @@ fn test_simple_enum() {
 /// For enums with data variants, we do the following:
 /// - Create a new trait called `{EnumName}ResourceExtractVariant` that has a method `extract_enum_variant`
 /// - Create a new type for the enum resource called `{EnumName}Resource`, which aliases `DynGd<Resource, dyn {EnumName}ResourceExtractVariant>`
-/// - Implement `AsGdRes` for the enum, which returns the new resource type
+/// - Implement `::as_gd_res::AsGdRes` for the enum, which returns the new resource type
 /// - Implement `ExtractGd` for the new resource type, which extracts the resource back to the input enum
-/// - For each enum variant, implement the `{EnumName}ResourceExtractVariant>` trait for the resource corresponding to the type in within the variant. It is up to the user to derive `AsGdRes` on the type inside each variant, which will create the resource type for that variant. (For example, if the enum has a variant `Money(MoneyData)`, the user must derive `AsGdRes` on `MoneyData` to create the resource type `MoneyDataResource`.). Each impl must be annotated with `#[godot_dyn]` for compatibility with `DynGd`.
+/// - For each enum variant, implement the `{EnumName}ResourceExtractVariant>` trait for the resource corresponding to the type in within the variant. It is up to the user to derive `::as_gd_res::AsGdRes` on the type inside each variant, which will create the resource type for that variant. (For example, if the enum has a variant `Money(MoneyData)`, the user must derive `::as_gd_res::AsGdRes` on `MoneyData` to create the resource type `MoneyDataResource`.). Each impl must be annotated with `#[godot_dyn]` for compatibility with `DynGd`.
 ///
 /// Note that having
 #[test]
@@ -221,8 +251,14 @@ fn test_enum_with_data_variants() {
         type PickupResource =
             ::godot::obj::DynGd<::godot::classes::Resource, dyn PickupResourceExtractVariant>;
 
-        impl AsGdRes for Pickup {
-            type ResType = PickupResource;
+        impl ::as_gd_res::AsGdRes for Pickup {
+            type ResType = ::godot::prelude::OnEditor<PickupResource>;
+        }
+        impl ::as_gd_res::AsGdResOpt for Pickup {
+            type GdOption = Option<PickupResource>;
+        }
+        impl ::as_gd_res::AsGdResArray for Pickup {
+            type GdArray = ::godot::prelude::Array<PickupResource>;
         }
 
         impl ExtractGd for dyn PickupResourceExtractVariant {
@@ -271,9 +307,18 @@ fn test_complex_nested_struct() {
     let actual = expand_as_gd_res(input);
     let expected = quote! {
 
-        impl AsGdRes for EnemyParams {
-            type ResType = ::godot::obj::Gd<EnemyParamsResource>;
+        impl ::as_gd_res::AsGdRes for EnemyParams {
+            type ResType = ::godot::prelude::OnEditor<::godot::obj::Gd<EnemyParamsResource>>;
         }
+
+        impl ::as_gd_res::AsGdResOpt for EnemyParams {
+            type GdOption = Option<::godot::obj::Gd<EnemyParamsResource>>;
+        }
+
+        impl ::as_gd_res::AsGdResArray for EnemyParams {
+            type GdArray = ::godot::prelude::Array<::godot::obj::Gd<EnemyParamsResource>>;
+        }
+
 
         #[derive(::godot::prelude::GodotClass)]
         #[class(tool,init,base=Resource)]
@@ -283,16 +328,16 @@ fn test_complex_nested_struct() {
             base: ::godot::obj::Base<::godot::classes::Resource>,
 
             #[export]
-            pub brain_params_required: <OnEditorInit<BrainParams> as AsGdRes>::ResType,
+            pub brain_params_required: <OnEditorInit<BrainParams> as ::as_gd_res::AsGdRes>::ResType,
             #[export]
-            pub brain_params_optional: <Option<BrainParams> as AsGdRes>::ResType,
+            pub brain_params_optional: <Option<BrainParams> as ::as_gd_res::AsGdRes>::ResType,
             #[export]
-            pub brains_vec: <Vec<BrainParams> as AsGdRes>::ResType,
+            pub brains_vec: <Vec<BrainParams> as ::as_gd_res::AsGdRes>::ResType,
 
             #[export]
-            pub drop_params: <Option<DropParams2> as AsGdRes>::ResType,
+            pub drop_params: <Option<DropParams2> as ::as_gd_res::AsGdRes>::ResType,
             #[export]
-            pub damage_team: <DamageTeam as AsGdRes>::ResType,
+            pub damage_team: <DamageTeam as ::as_gd_res::AsGdRes>::ResType,
         }
 
         impl ExtractGd for EnemyParamsResource {

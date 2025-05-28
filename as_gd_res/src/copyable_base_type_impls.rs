@@ -1,9 +1,8 @@
-use crate::{AsGdRes, ExtractGd};
+use crate::{AsGdRes, AsGdResArray, ExtractGd};
 
 //////////////
 // impls for core copyable types
 //////////////
-
 macro_rules! impl_extract_gd_copyable {
     ($($t:ty),*) => {
         $(
@@ -30,16 +29,22 @@ impl_extract_gd_copyable! {
     bool
 }
 
+/// NOTE: Option<$t> is not supported for numeric types, so not implemented here.
 macro_rules! impl_as_res_gd_for_copyable {
     ($($t:ty),*) => {
         $(
-
-
             impl AsGdRes for $t
             where
                 $t: Copy,
             {
                 type ResType = Self;
+            }
+
+            impl AsGdResArray for $t
+            where
+                $t: Copy,
+            {
+                type GdArray = ::godot::prelude::Array<$t>;
             }
         )*
     };
