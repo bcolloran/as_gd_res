@@ -108,3 +108,22 @@ fn test_struct_error() {
 
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
 }
+
+#[test]
+fn test_union_error() {
+    let input: syn::DeriveInput = parse_quote! {
+            pub union Foo {
+                a: u32,
+                b: f32,
+            }
+    };
+
+    let expected = quote! {
+
+                compile_error!(
+                    "AsSimpleGdEnum derive only supports enums with unit variants, not structs. Did you mean to derive `AsGdRes`?"
+                );
+    };
+
+    assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
+}
