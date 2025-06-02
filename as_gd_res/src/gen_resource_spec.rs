@@ -329,7 +329,7 @@ impl AsGdRes for BrainParams {
     type ResType = DynGd<Resource, dyn BrainParamsEnumDynEnumResource>;
 }
 
-// the `ExtractGd` impl for `DynGd<Resource, dyn #{enum_name}EnumDynRes>` will `dyn_bind` the dyn compatible Resouce, and call `extract_enum_data` on to get back the enum variant
+// the `ExtractGd` impl for `DynGd<Resource, dyn #{enum_name}EnumDynRes>` will `dyn_bind` the dyn compatible Resource, and call `extract_enum_data` to get back the enum variant
 impl ExtractGd for DynGd<Resource, dyn BrainParamsEnumDynEnumResource> {
     type Extracted = BrainParams;
     fn extract(&self) -> Self::Extracted {
