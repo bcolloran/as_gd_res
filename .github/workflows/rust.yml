@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    # install Rust toolchain
-    - uses: actions/setup-rust@v1
-      with:
-        rust-version: stable
+      # Install Rust toolchain (stable) via the rust-lang setup action
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
 
-    - name: Build all crates
-      run: cargo build --workspace --all-targets --verbose
+      - name: Build all crates
+        run: cargo build --workspace --all-targets --verbose
 
-    - name: Test all crates
-      run: cargo test --workspace --all-targets --verbose
+      - name: Test all crates
+        run: cargo test --workspace --all-targets --verbose
