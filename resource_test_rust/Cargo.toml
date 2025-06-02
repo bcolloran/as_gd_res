@@ -7,9 +7,13 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-godot = { path = "/data/code_projects/rust/gdext/godot", features = [
+godot = { git = "https://github.com/bcolloran/gdext.git", rev = "f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff", features = [
   "register-docs",
-  # experimental-threads needed because of  https://github.com/godot-rust/gdext/issues/597
   "experimental-threads",
 ] }
+# godot = { path = "/data/code_projects/rust/gdext/godot", features = [
+#   "register-docs",
+#   # experimental-threads needed because of  https://github.com/godot-rust/gdext/issues/597
+#   "experimental-threads",
+# ] }
 as_gd_res = { path = "../as_gd_res" }

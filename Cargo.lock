@@ -59,7 +59,8 @@ checksum = "6b46b9ca4690308844c644e7c634d68792467260e051c8543e0c7871662b3ba7"
 
 [[package]]
 name = "godot"
-version = "0.2.4"
+version = "0.3.0"
+source = "git+https://github.com/bcolloran/gdext.git?rev=f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff#f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -67,18 +68,21 @@ dependencies = [
 
 [[package]]
 name = "godot-bindings"
-version = "0.2.4"
+version = "0.3.0"
+source = "git+https://github.com/bcolloran/gdext.git?rev=f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff#f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff"
 dependencies = [
  "gdextension-api",
 ]
 
 [[package]]
 name = "godot-cell"
-version = "0.2.4"
+version = "0.3.0"
+source = "git+https://github.com/bcolloran/gdext.git?rev=f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff#f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff"
 
 [[package]]
 name = "godot-codegen"
-version = "0.2.4"
+version = "0.3.0"
+source = "git+https://github.com/bcolloran/gdext.git?rev=f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff#f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -90,7 +94,8 @@ dependencies = [
 
 [[package]]
 name = "godot-core"
-version = "0.2.4"
+version = "0.3.0"
+source = "git+https://github.com/bcolloran/gdext.git?rev=f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff#f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff"
 dependencies = [
  "glam",
  "godot-bindings",
@@ -101,7 +106,8 @@ dependencies = [
 
 [[package]]
 name = "godot-ffi"
-version = "0.2.4"
+version = "0.3.0"
+source = "git+https://github.com/bcolloran/gdext.git?rev=f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff#f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff"
 dependencies = [
  "godot-bindings",
  "godot-codegen",
@@ -111,7 +117,8 @@ dependencies = [
 
 [[package]]
 name = "godot-macros"
-version = "0.2.4"
+version = "0.3.0"
+source = "git+https://github.com/bcolloran/gdext.git?rev=f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff#f67a1ae43b1e06cd9a58ccb9d6330bf06c6e25ff"
 dependencies = [
  "godot-bindings",
  "libc",
