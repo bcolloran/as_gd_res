@@ -369,3 +369,31 @@ fn test_complex_nested_struct() {
 
     assert_eq!(actual.to_string(), expected.to_string());
 }
+#[test]
+fn test_enum_mixed_variants_error() {
+    let input: syn::DeriveInput = parse_quote! {
+        pub enum Mixed {
+            Unit,
+            Tuple(u32),
+            Struct { x: i32 }
+        }
+    };
+    let expected = quote! {
+        compile_error!("`derive(AsGdRes)` only supports unit enums or single-tuple enums. Unsupported variants: Struct");
+    };
+    assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
+}
+
+#[test]
+fn test_union_error() {
+    let input: syn::DeriveInput = parse_quote! {
+        pub union Foo {
+            a: u32,
+            b: f32,
+        }
+    };
+    let expected = quote! {
+        compile_error!("`derive(AsGdRes)` only supports structs with named fields, enums with unit variants, or enums with single-tuple variants");
+    };
+    assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
+}
