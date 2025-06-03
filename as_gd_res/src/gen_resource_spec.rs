@@ -270,7 +270,7 @@ impl ExtractGd for RoombaBrainParamsResource {
 //
 
 ///// SIMPLE ENUMS
-/// Note that godod-rust does not support `Option<SomeEnum>`; If you want an "optional" enum, include a `None` variant in the enum itself, and set taht as the default value.
+/// Note that godot-rust does not support `Option<SomeEnum>`; If you want an "optional" enum, include a `None` variant in the enum itself, and set that as the default value.
 /// `Array<SomeEnum>` is also not supported
 
 // for a simple enum with no associated data, we generate an
