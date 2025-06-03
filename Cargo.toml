@@ -5,3 +5,4 @@ members = [
   "as_simple_gd_enum_derive",
   "resource_test_rust",
 ]
+resolver = "2"
