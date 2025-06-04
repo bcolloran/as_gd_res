@@ -1,6 +1,6 @@
-[gd_scene load_steps=14 format=3 uid="uid://cyujto62c6c81"]
+[gd_scene load_steps=4 format=3 uid="uid://cyujto62c6c81"]
 
-[ext_resource type="PackedScene" uid="uid://cio7schakuy6s" path="res://another_scene.tscn" id="1_uhqqe"]
+[ext_resource type="ComplicatedResource" uid="uid://r2084xaooe41" path="res://test_complicated_resource.tres" id="1_uhqqe"]
 
 [sub_resource type="SimpleDataResource" id="SimpleDataResource_6adnx"]
 name = "sdfadf"
@@ -9,52 +9,9 @@ int_vec = Array[int]([1, 2, 3, 4])
 
 [sub_resource type="PowerUpDataResource" id="PowerUpDataResource_uhqqe"]
 
-[sub_resource type="SimpleDataResource" id="SimpleDataResource_ia1lp"]
-name = "a"
-value = 1
-
-[sub_resource type="SimpleDataResource" id="SimpleDataResource_sasra"]
-name = "b"
-value = 2
-
-[sub_resource type="Curve" id="Curve_coq8p"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.205682, 1), 0.0, 0.0, 0, 0, Vector2(0.498864, 0.316591), 0.0, 0.0, 0, 0]
-point_count = 3
-
-[sub_resource type="Curve" id="Curve_2nij2"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
-point_count = 2
-
-[sub_resource type="Curve" id="Curve_7cbxl"]
-_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
-point_count = 2
-
-[sub_resource type="PowerUpDataResource" id="PowerUpDataResource_8pr8v"]
-cost = 4
-
-[sub_resource type="HealDataResource" id="HealDataResource_buypi"]
-hp = 1
-duration = 43
-
-[sub_resource type="MoneyDataResource" id="MoneyDataResource_njel3"]
-value = 32
-
-[sub_resource type="SimpleDataResource" id="SimpleDataResource_vr1i5"]
-
-[sub_resource type="ComplicatedResource" id="ComplicatedResource_rpuu0"]
-nested_enum = SubResource("PowerUpDataResource_8pr8v")
-nested_enum_option_1 = SubResource("HealDataResource_buypi")
-nested_enum_option_2 = SubResource("MoneyDataResource_njel3")
-curve = SubResource("Curve_coq8p")
-curve_array = Array[Curve]([SubResource("Curve_2nij2"), SubResource("Curve_7cbxl")])
-path = ExtResource("1_uhqqe")
-nested_simple = SubResource("SimpleDataResource_vr1i5")
-array_simple = Array[SimpleDataResource]([SubResource("SimpleDataResource_ia1lp"), SubResource("SimpleDataResource_sasra")])
-simple_enum = "Earth"
-
 [node name="Node2D" type="Node2D"]
 
 [node name="TestNode" type="TestNode" parent="."]
 test_simple_res = SubResource("SimpleDataResource_6adnx")
 enum_with_data = SubResource("PowerUpDataResource_uhqqe")
-crazy_nested_resource = SubResource("ComplicatedResource_rpuu0")
+crazy_nested_resource = ExtResource("1_uhqqe")
