@@ -1,0 +1,25 @@
+name: Resource Output Test
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+      - name: Download Godot
+        run: |
+          curl -L https://github.com/godotengine/godot-builds/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -o godot.zip
+          unzip godot.zip -d /usr/local/bin
+          echo "GODOT_BIN=/usr/local/bin/Godot_v4.4.1-stable_linux.x86_64" >> $GITHUB_ENV
+          chmod +x /usr/local/bin/Godot_v4.4.1-stable_linux.x86_64
+          sudo apt-get update && sudo apt-get install -y xvfb
+      - name: Build extension
+        run: cargo build
+      - name: Run resource extract test
+        run: ./codex_scripts/test_resource_extract.sh
