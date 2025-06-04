@@ -10,4 +10,4 @@ jobs:
         with:
           project_dir: './resource_test_godot_project/'
           godot-version: '4.4.1'
-          paths: 'res://unit_test'
+          paths: 'res://unit_test.gd'
