@@ -29,13 +29,15 @@ struct TestNode {
 impl INode for TestNode {
     // Called when the node is ready in the scene tree.
     fn ready(&mut self) {
-        godot_print!("TestNode is ready!");
+        godot_print!("--- Resource Extract Test ---");
         godot_print!("test_simple_res: {:?}", self.test_simple_res.extract());
         godot_print!("enum_with_data: {:?}", self.enum_with_data.extract());
         godot_print!(
             "crazy_nested_resource: {:?}",
             self.crazy_nested_resource.extract()
         );
+
+        self.base().get_tree().map(|mut tree| tree.quit());
     }
 }
 
