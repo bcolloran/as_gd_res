@@ -1,6 +1,9 @@
 name: GdUnit4 Tests
 on: [push, pull_request]
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -12,7 +15,13 @@ jobs:
           toolchain: stable
 
       - name: Build `resource_test_rust`
-        run: cd resource_test_rust && cargo build --verbose
+        run: cargo build -p resource_test_rust --verbose
+      
+      - name: print working project_dir
+        run: pwd
+
+      - name: ls
+        run: ls
 
       - uses: MikeSchulze/gdunit4-action@v1
         with:
