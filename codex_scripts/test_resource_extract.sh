@@ -18,10 +18,10 @@ awk '/--- Resource Extract Test ---/{flag=1;next} flag' "$OUTPUT" > "$OUTPUT.tri
 # remove trailing newline to match expected file
 truncate -s -1 "$OUTPUT.trimmed"
 
-echo "--- Trimmed Output ---"
+echo "/n--- Trimmed Output ---"
 cat "$OUTPUT.trimmed"
 
-echo "--- Diff with Expected ---"
+echo "/n/n--- Diff with Expected ---"
 diff -u "$EXPECTED" "$OUTPUT.trimmed" || true
 
 if cmp -s "$EXPECTED" "$OUTPUT.trimmed"; then
