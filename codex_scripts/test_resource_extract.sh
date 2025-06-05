@@ -31,3 +31,4 @@ else
   echo "Output differs from expected." >&2
   exit 1
 fi
+
