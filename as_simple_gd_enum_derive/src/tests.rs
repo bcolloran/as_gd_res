@@ -18,7 +18,7 @@ fn test_simple_enum() {
 
     let expected = quote! {
 
-        #[derive(GodotConvert, Var, Export, Clone, Copy, Debug, PartialEq, Eq)]
+        #[derive(::godot::prelude::GodotConvert, ::godot::prelude::Var, ::godot::prelude::Export, Clone, Copy, Debug, PartialEq, Eq)]
         #[godot(via = GString)]
         pub enum ElementAsGdEnum {
             Fire,
@@ -37,9 +37,9 @@ fn test_simple_enum() {
             }
         }
 
-        impl Into<ElementAsGdEnum> for Element {
-            fn into(self) -> ElementAsGdEnum {
-                match self {
+        impl From<Element> for ElementAsGdEnum {
+            fn from(value: Element) -> ElementAsGdEnum {
+                match value {
                     Element::Fire => ElementAsGdEnum::Fire,
                     Element::Water => ElementAsGdEnum::Water,
                     Element::Earth => ElementAsGdEnum::Earth,
@@ -47,9 +47,9 @@ fn test_simple_enum() {
                 }
             }
         }
-        impl Into<Element> for ElementAsGdEnum {
-            fn into(self) -> Element {
-                match self {
+        impl From<ElementAsGdEnum> for Element {
+            fn from(value: ElementAsGdEnum) -> Element {
+                match value {
                     ElementAsGdEnum::Fire => Element::Fire,
                     ElementAsGdEnum::Water => Element::Water,
                     ElementAsGdEnum::Earth => Element::Earth,
@@ -125,5 +125,19 @@ fn test_union_error() {
                 );
     };
 
+    assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
+}
+
+#[test]
+fn test_generic_enum_error() {
+    let input: syn::DeriveInput = parse_quote! {
+        pub enum Generic<T> {
+            A,
+            B(T),
+        }
+    };
+    let expected = quote! {
+        compile_error!("`derive(AsSimpleGdEnum)` does not support generics");
+    };
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
 }
