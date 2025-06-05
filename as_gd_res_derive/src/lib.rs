@@ -13,11 +13,17 @@ pub fn as_gd_res_derive(input: TokenStream) -> TokenStream {
 }
 
 fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
+    if !input.generics.params.is_empty() {
+        return quote! { compile_error!("`derive(AsGdRes)` does not support generics"); };
+    }
     let name = input.ident;
     let res_name = format_ident!("{}Resource", name);
 
     match input.data {
         Data::Struct(data) => {
+            if !matches!(data.fields, Fields::Named(_)) {
+                return quote! { compile_error!("`derive(AsGdRes)` only supports structs with named fields"); };
+            }
             let mut defs = Vec::new();
             let mut extracts = Vec::new();
             for field in data.fields.iter() {
@@ -85,10 +91,8 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
 
             if all_unit {
                 quote! {
-
-
                 compile_error!(
-                    "`derive(AsGdRes)` only or enums with single-tuple variants, not unit variants. Did you mean to use `derive(AsSimpleGdEnum)`?"
+                    "`derive(AsGdRes)` only supports enums with single-tuple variants, not unit variants. Did you mean to use `derive(AsSimpleGdEnum)`?"
                 );
                         // impl ::as_gd_res::AsGdRes for #name {
                         //     type ResType = #name;

@@ -16,12 +16,9 @@ these macros can be used inside a small Godot extension library.
   derives from Godot. It is paired with the `resource_test_godot_project`
   directory which contains a minimal Godot project.
 
-Every crate that defines macros has a `rust-toolchain.toml` pointing to the
-`nightly` toolchain.
-
 ## Building
 
-1. Ensure you have a nightly Rust toolchain installed (`rustup toolchain install nightly`).
+1. Ensure you have the stable Rust toolchain installed (`rustup toolchain install stable`).
 2. The `godot` dependency uses a local path in `Cargo.toml`:
 
    ```toml
@@ -61,6 +58,12 @@ enum Element {
 The macros generate `Resource` structs compatible with Godot and implement
 `ExtractGd` so you can convert the generated resources back into your original
 Rust types.
+
+### Limitations
+
+- The derive macros do **not** support types with generic parameters.
+- `#[derive(AsGdRes)]` only works on structs with named fields or enums where
+  every variant is unit-like or a single-tuple variant.
 
 ## License
 

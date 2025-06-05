@@ -31,6 +31,9 @@ pub fn as_gd_res_derive(input: TokenStream) -> TokenStream {
 /// - impls Default for the new enum by way of `default().into()` from the existing enum type (the existing enum must already impl Default)
 
 fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
+    if !input.generics.params.is_empty() {
+        return quote! { compile_error!("`derive(AsSimpleGdEnum)` does not support generics"); };
+    }
     let name = input.ident;
     let res_name = format_ident!("{}AsGdEnum", name);
 
@@ -84,7 +87,7 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
 
             // all‐unit case ⇒ emit the “AsGdEnum” + trait impls
             quote! {
-                #[derive(GodotConvert, Var, Export, Clone, Copy, Debug, PartialEq, Eq)]
+                #[derive(::godot::prelude::GodotConvert, ::godot::prelude::Var, ::godot::prelude::Export, Clone, Copy, Debug, PartialEq, Eq)]
                 #[godot(via = GString)]
                 pub enum #res_name {
                     #( #unit_variants , )*
@@ -101,17 +104,17 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                     }
                 }
 
-                impl Into<#res_name> for #name {
-                    fn into(self) -> #res_name {
-                        match self {
+                impl From<#name> for #res_name {
+                    fn from(value: #name) -> #res_name {
+                        match value {
                             #( #name::#unit_variants => #res_name::#unit_variants , )*
                         }
                     }
                 }
 
-                impl Into<#name> for #res_name {
-                    fn into(self) -> #name {
-                        match self {
+                impl From<#res_name> for #name {
+                    fn from(value: #res_name) -> #name {
+                        match value {
                             #( #res_name::#unit_variants => #name::#unit_variants , )*
                         }
                     }
