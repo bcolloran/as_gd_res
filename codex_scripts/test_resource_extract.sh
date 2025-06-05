@@ -17,4 +17,17 @@ xvfb-run "$GODOT_BIN" --headless --path "$REPO_ROOT/resource_test_godot_project"
 awk '/--- Resource Extract Test ---/{flag=1;next} flag' "$OUTPUT" > "$OUTPUT.trimmed"
 # remove trailing newline to match expected file
 truncate -s -1 "$OUTPUT.trimmed"
-diff -u "$EXPECTED" "$OUTPUT.trimmed"
+
+echo "--- Trimmed Output ---"
+cat "$OUTPUT.trimmed"
+
+echo "--- Diff with Expected ---"
+diff -u "$EXPECTED" "$OUTPUT.trimmed" || true
+
+if cmp -s "$EXPECTED" "$OUTPUT.trimmed"; then
+  echo "Output matches expected."
+  exit 0
+else
+  echo "Output differs from expected." >&2
+  exit 1
+fi
