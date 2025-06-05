@@ -34,3 +34,16 @@ The integration tests live in `resource_test_godot_project/unit_test.gd` and use
    cd resource_test_godot_project
    xvfb-run ./addons/gdUnit4/runtest.sh -a res://unit_test.gd
    ```
+
+## Verifying resource extraction output
+The repository includes a helper script `codex_scripts/test_resource_extract.sh`
+which runs `test_scene.tscn` headlessly and compares the printed output with
+`expected_rust_print_output.txt`. The script automatically preloads the
+extension's script classes by running the editor once in headless mode.
+Run it after building the extension and setting `GODOT_BIN` to verify the
+scene output:
+
+```bash
+export GODOT_BIN=/usr/local/bin/Godot_v4.4.1-stable_linux.x86_64
+./codex_scripts/test_resource_extract.sh
+```
