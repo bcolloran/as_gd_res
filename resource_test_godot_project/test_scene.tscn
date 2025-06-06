@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://cyujto62c6c81"]
+[gd_scene load_steps=6 format=3 uid="uid://cyujto62c6c81"]
 
 [ext_resource type="ComplicatedResource" uid="uid://r2084xaooe41" path="res://test_complicated_resource.tres" id="1_uhqqe"]
 
@@ -9,9 +9,17 @@ int_vec = Array[int]([1, 2, 3, 4])
 
 [sub_resource type="PowerUpDataResource" id="PowerUpDataResource_uhqqe"]
 
+[sub_resource type="JumpParamsResource" id="JumpParamsResource_uhqqe"]
+
+[sub_resource type="JumpParamsResource" id="JumpParamsResource_ia1lp"]
+height = 3.0
+time_up = 2.0
+
 [node name="Node2D" type="Node2D"]
 
 [node name="TestNode" type="TestNode" parent="."]
 test_simple_res = SubResource("SimpleDataResource_6adnx")
 enum_with_data = SubResource("PowerUpDataResource_uhqqe")
 crazy_nested_resource = ExtResource("1_uhqqe")
+calculated_resource_default_in_editor = SubResource("JumpParamsResource_uhqqe")
+calculated_resource_changed_in_editor = SubResource("JumpParamsResource_ia1lp")
