@@ -32,7 +32,11 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
                     let mut attrs = field
                         .attrs
                         .iter()
-                        .filter(|a| a.path().is_ident("export") || a.path().is_ident("init"))
+                        .filter(|a| {
+                            a.path().is_ident("export")
+                                || a.path().is_ident("init")
+                                || a.path().is_ident("var")
+                        })
                         .cloned()
                         .collect::<Vec<_>>();
                     if attrs.is_empty() {

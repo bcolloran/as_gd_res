@@ -126,6 +126,12 @@ fn test_2() {
     assert_eq!(actual.to_string(), expected.to_string());
 }
 
+/// Spec for attribute pass-through:
+/// - If the field has any of the following attributes, they should be passed through to the generated struct.
+///     - #[var(...)]
+///     - #[export(...)]
+///     - #[init(...)]
+/// - If the field has no attributes, we must add the `#[export]` attribute to the generated struct.
 #[test]
 fn test_attr_pass_through() {
     let input: syn::DeriveInput = parse_quote! {
@@ -136,9 +142,14 @@ fn test_attr_pass_through() {
 
           #[export(range = (0.0, 5.0))]
           #[init(val = 3.0)]
+          #[var(get, set = set_max_value_per_coin)]
           pub max_value_per_coin: f32,
+
           pub coin_scene_1: Option<PackedScenePath>,
           pub coin_scene_2: OnEditorInit<PackedScenePath>,
+
+          #[var]
+          pub non_exported_field: u32,
       }
     };
 
@@ -163,13 +174,20 @@ fn test_attr_pass_through() {
           #[export(range = (100.0, 500.0))]
           #[init(val = 200.0)]
           pub total_value: <f32 as ::as_gd_res::AsGdRes>::ResType,
+
           #[export(range = (0.0, 5.0))]
           #[init(val = 3.0)]
+          #[var(get, set = set_max_value_per_coin)]
           pub max_value_per_coin: <f32 as ::as_gd_res::AsGdRes>::ResType,
+
           #[export]
           pub coin_scene_1: <Option<PackedScenePath> as ::as_gd_res::AsGdRes>::ResType,
+
           #[export]
           pub coin_scene_2: <OnEditorInit<PackedScenePath> as ::as_gd_res::AsGdRes>::ResType,
+
+          #[var]
+          pub non_exported_field: <u32 as ::as_gd_res::AsGdRes>::ResType,
       }
 
       impl ::as_gd_res::ExtractGd for DropParams2Resource {
@@ -180,6 +198,7 @@ fn test_attr_pass_through() {
                   max_value_per_coin: self.max_value_per_coin.extract(),
                   coin_scene_1: self.coin_scene_1.extract(),
                   coin_scene_2: self.coin_scene_2.extract(),
+                  non_exported_field: self.non_exported_field.extract(),
               }
           }
       }
