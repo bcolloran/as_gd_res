@@ -227,30 +227,6 @@ fn test_simple_enum() {
         compile_error!(
                     "`derive(AsGdRes)` only supports enums with single-tuple variants, not unit variants. Did you mean to use `derive(AsSimpleGdEnum)`?"
                 );
-            // #[derive(Default, Clone, Copy, GodotConvert, Var, Export)]
-            // #[godot(via = ::godot::builtin::GString)]
-            // pub enum DamageTeam {
-            //     #[default]
-            //     Player,
-            //     Enemy,
-            //     Environment,
-            // }
-
-            // impl ::as_gd_res::AsGdRes for DamageTeam {
-            //     type ResType = DamageTeam;
-            // }
-
-            // impl ::as_gd_res::AsGdResArray for DamageTeam {
-            //     type GdArray = ::godot::prelude::Array<::godot::obj::Gd<DamageTeam>>;
-            // }
-
-            // impl ExtractGd for DamageTeam {
-            //     type Extracted = DamageTeam;
-            //     fn extract(&self) -> Self::Extracted {
-            //         self.clone()
-            //     }
-            // }
-
     };
 
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
