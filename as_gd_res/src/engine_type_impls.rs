@@ -28,13 +28,22 @@ pub struct RustCurve {
 }
 
 impl RustCurve {
-    pub fn sample(&self, x: f32) -> f32 {
-        if x < self.min || x > self.max {
-            return 0.0;
+    pub fn try_sample(&self, x: f32) -> Result<f32, String> {
+        if x < self.min {
+            return Err(format!(
+                "Value {} is below the minimum domain {}",
+                x, self.min
+            ));
+        }
+        if x > self.max {
+            return Err(format!(
+                "Value {} is above the maximum domain {}",
+                x, self.max
+            ));
         }
         let index = ((x - self.min) / (self.max - self.min) * (CURVE_SAMPLE_POINTS as f32 - 1.0))
             .round() as usize;
-        self.baked[index]
+        Ok(self.baked[index])
     }
 
     pub fn integral(&self) -> f32 {
