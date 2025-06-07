@@ -148,6 +148,7 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
                 impl ::as_gd_res::ExtractGd for #res_name {
                     type Extracted = #name;
                     fn extract(&self) -> Self::Extracted {
+                        use ::as_gd_res::ExtractGd;
                         Self::Extracted {
                             #(#extracts)*
                         }
