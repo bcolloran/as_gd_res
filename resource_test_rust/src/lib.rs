@@ -1,3 +1,4 @@
+use as_gd_res::engine_type_impls::NodePathString;
 use as_gd_res::engine_type_impls::PackedScenePath;
 use as_gd_res::engine_type_impls::RustCurve;
 use as_gd_res::AsGdRes;
@@ -34,18 +35,18 @@ impl INode for TestNode {
     // Called when the node is ready in the scene tree.
     fn ready(&mut self) {
         godot_print!("--- Resource Extract Test ---");
-        godot_print!("test_simple_res: {:?}", self.test_simple_res.extract());
-        godot_print!("enum_with_data: {:?}", self.enum_with_data.extract());
+        godot_print!("test_simple_res: {:#?}", self.test_simple_res.extract());
+        godot_print!("enum_with_data: {:#?}", self.enum_with_data.extract());
         godot_print!(
-            "crazy_nested_resource: {:?}",
+            "crazy_nested_resource: {:#?}",
             self.crazy_nested_resource.extract()
         );
         godot_print!(
-            "calculated_resource_default_in_editor: {:?}",
+            "calculated_resource_default_in_editor: {:#?}",
             self.calculated_resource_default_in_editor.extract()
         );
         godot_print!(
-            "calculated_resource_changed_in_editor: {:?}",
+            "calculated_resource_changed_in_editor: {:#?}",
             self.calculated_resource_changed_in_editor.extract()
         );
 
@@ -59,6 +60,7 @@ pub struct SimpleData {
     pub name: String,
     pub value: i32,
     pub int_vec: Vec<u8>,
+    pub path_to_node: NodePathString,
 }
 
 /////////// Simple enum
@@ -105,6 +107,9 @@ pub struct Complicated {
     pub value: i32,
     pub int_vec: Vec<u8>,
 
+    pub string: String,
+    pub string_array: Vec<String>,
+
     pub nested_enum: Pickup,
     pub nested_enum_option_1: Option<Pickup>,
     pub nested_enum_option_2: Option<Pickup>,
@@ -117,6 +122,9 @@ pub struct Complicated {
     pub path: PackedScenePath,
     pub path_option: Option<PackedScenePath>,
     pub path_array: Vec<PackedScenePath>,
+
+    pub node_path: NodePathString,
+    pub node_path_array: Vec<NodePathString>,
 
     pub nested_simple: SimpleData,
     pub nested_simple_option: Option<SimpleData>,

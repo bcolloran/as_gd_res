@@ -6,6 +6,7 @@
 name = "sdfadf"
 value = 34
 int_vec = Array[int]([1, 2, 3, 4])
+path_to_node = NodePath("ChildNode1/GrandChildNode1")
 
 [sub_resource type="PowerUpDataResource" id="PowerUpDataResource_uhqqe"]
 
@@ -23,3 +24,11 @@ enum_with_data = SubResource("PowerUpDataResource_uhqqe")
 crazy_nested_resource = ExtResource("1_uhqqe")
 calculated_resource_default_in_editor = SubResource("JumpParamsResource_uhqqe")
 calculated_resource_changed_in_editor = SubResource("JumpParamsResource_ia1lp")
+
+[node name="ChildNode1" type="Node" parent="TestNode"]
+
+[node name="GrandChildNode1" type="Node" parent="TestNode/ChildNode1"]
+
+[node name="ChildNode2" type="Node" parent="TestNode"]
+
+[node name="GrandChildNode2" type="Node" parent="TestNode/ChildNode2"]

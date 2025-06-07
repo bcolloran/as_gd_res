@@ -1,4 +1,4 @@
-use crate::{AsGdRes, AsGdResArray, AsGdResOpt, ExtractGd};
+use crate::{impl_wrapped_builtin_as_gd_res, AsGdRes, AsGdResArray, AsGdResOpt, ExtractGd};
 
 use crate::impl_wrapped_as_gd_res;
 use godot::classes::Curve;
@@ -82,12 +82,25 @@ impl ExtractGd for Gd<Curve> {
     }
 }
 
-impl AsGdRes for String {
-    type ResType = GString;
-}
+impl_wrapped_builtin_as_gd_res!(String, GString);
+
 impl ExtractGd for GString {
     type Extracted = String;
     fn extract(&self) -> Self::Extracted {
         self.to_string()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct NodePathString(pub String);
+impl_wrapped_builtin_as_gd_res!(NodePathString, NodePath);
+
+// impl AsGdRes for NodePathString {
+//     type ResType = NodePath;
+// }
+impl ExtractGd for NodePath {
+    type Extracted = NodePathString;
+    fn extract(&self) -> Self::Extracted {
+        NodePathString(self.to_string())
     }
 }

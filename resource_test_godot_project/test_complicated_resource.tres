@@ -11,15 +11,15 @@ name = "b"
 value = 2
 
 [sub_resource type="Curve" id="Curve_coq8p"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.205682, 1), 0.0, 0.0, 0, 0, Vector2(0.498864, 0.316591), 0.0, 0.0, 0, 0]
+_data = [Vector2(0, 0), 0.0, 4.0, 0, 1, Vector2(0.25, 1), 4.0, -2.0, 1, 1, Vector2(0.5, 0.5), -2.0, 0.0, 1, 0]
 point_count = 3
 
 [sub_resource type="Curve" id="Curve_2nij2"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+_data = [Vector2(0, 0), 0.0, 1.0, 0, 1, Vector2(1, 1), 1.0, 0.0, 1, 0]
 point_count = 2
 
 [sub_resource type="Curve" id="Curve_7cbxl"]
-_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+_data = [Vector2(0, 1), 0.0, -1.0, 0, 1, Vector2(1, 0), -1.0, 0.0, 1, 0]
 point_count = 2
 
 [sub_resource type="PowerUpDataResource" id="PowerUpDataResource_8pr8v"]
@@ -43,6 +43,8 @@ nested_enum_option_2 = SubResource("MoneyDataResource_njel3")
 curve = SubResource("Curve_coq8p")
 curve_array = Array[Curve]([SubResource("Curve_2nij2"), SubResource("Curve_7cbxl")])
 path = ExtResource("1_2kx5d")
+node_path = NodePath("ChildNode1/GrandChildNode1")
+node_path_array = Array[NodePath]([NodePath("ChildNode2"), NodePath("ChildNode2/GrandChildNode2")])
 nested_simple = SubResource("SimpleDataResource_vr1i5")
 array_simple = Array[SimpleDataResource]([SubResource("SimpleDataResource_ia1lp"), SubResource("SimpleDataResource_sasra")])
 simple_enum = "Earth"
