@@ -60,6 +60,7 @@ fn test_simple() {
       impl ::as_gd_res::ExtractGd for SimpleStructParamsResource {
           type Extracted = SimpleStructParams;
           fn extract(&self) -> Self::Extracted {
+              use ::as_gd_res::ExtractGd;
               Self::Extracted {
                   a: self.a.extract(),
                   b: self.b.extract(),
@@ -114,6 +115,7 @@ fn test_2() {
             impl ::as_gd_res::ExtractGd for DropParams2Resource {
                 type Extracted = DropParams2;
                 fn extract(&self) -> Self::Extracted {
+                    use ::as_gd_res::ExtractGd;
                     Self::Extracted {
                         total_value: self.total_value.extract(),
                         max_value_per_coin: self.max_value_per_coin.extract(),
@@ -194,6 +196,7 @@ fn test_attr_pass_through() {
       impl ::as_gd_res::ExtractGd for DropParams2Resource {
           type Extracted = DropParams2;
           fn extract(&self) -> Self::Extracted {
+              use ::as_gd_res::ExtractGd;
               Self::Extracted {
                   total_value: self.total_value.extract(),
                   max_value_per_coin: self.max_value_per_coin.extract(),
@@ -351,6 +354,7 @@ fn test_complex_nested_struct() {
         impl ::as_gd_res::ExtractGd for EnemyParamsResource {
             type Extracted = EnemyParams;
             fn extract(&self) -> Self::Extracted {
+                use ::as_gd_res::ExtractGd;
                 Self::Extracted {
                     brain_params_required: self.brain_params_required.extract(),
                     brain_params_optional: self.brain_params_optional.extract(),
@@ -514,6 +518,7 @@ fn test_post_init_attr() {
     impl ::as_gd_res::ExtractGd for JumpParamsResource {
         type Extracted = JumpParams;
         fn extract(&self) -> Self::Extracted {
+            use ::as_gd_res::ExtractGd;
             Self::Extracted {
                 height: self.height.extract(),
                 time_up: self.time_up.extract(),
