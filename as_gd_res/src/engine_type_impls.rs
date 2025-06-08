@@ -95,6 +95,12 @@ impl ExtractGd for GString {
 pub struct NodePathString(pub String);
 impl_wrapped_builtin_as_gd_res!(NodePathString, NodePath);
 
+impl NodePathString {
+    pub fn to_node_path(&self) -> NodePath {
+        self.0.clone().into()
+    }
+}
+
 // impl AsGdRes for NodePathString {
 //     type ResType = NodePath;
 // }
