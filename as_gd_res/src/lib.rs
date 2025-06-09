@@ -11,10 +11,6 @@ pub use as_simple_gd_enum_derive::*;
 use godot::obj::{bounds, Bounds, Gd, GodotClass};
 use godot::prelude::*;
 
-pub trait ExportWrapper<T: ?Sized>: Export {
-    type W;
-}
-
 pub trait AsGdRes: Clone {
     type ResType: ExtractGd + ?Sized;
 }
