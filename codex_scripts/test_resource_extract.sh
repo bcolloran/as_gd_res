@@ -11,9 +11,9 @@ if [ -z "${GODOT_BIN:-}" ]; then
 fi
 
 # Preload plugin script classes by running the editor once
-xvfb-run "$GODOT_BIN" --headless --editor --path "$REPO_ROOT/resource_test_godot_project" --quit
+xvfb-run -a "$GODOT_BIN" --headless --editor --path "$REPO_ROOT/resource_test_godot_project" --quit
 
-xvfb-run "$GODOT_BIN" --headless --path "$REPO_ROOT/resource_test_godot_project" test_scene.tscn > "$OUTPUT"
+xvfb-run -a "$GODOT_BIN" --headless --path "$REPO_ROOT/resource_test_godot_project" test_scene.tscn > "$OUTPUT"
 awk '/--- Resource Extract Test ---/{flag=1;next} flag' "$OUTPUT" > "$OUTPUT.trimmed"
 # remove trailing newline to match expected file
 truncate -s -1 "$OUTPUT.trimmed"
