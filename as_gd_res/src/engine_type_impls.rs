@@ -5,6 +5,7 @@ use godot::classes::Curve;
 use godot::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "easy_hash", derive(easy_hash::EasyHash))]
 pub struct PackedScenePath(pub String);
 
 impl_wrapped_as_gd_res!(PackedScenePath, PackedScene);
