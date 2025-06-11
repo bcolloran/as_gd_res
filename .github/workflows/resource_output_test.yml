@@ -18,7 +18,9 @@ jobs:
           unzip godot.zip -d /usr/local/bin
           echo "GODOT_BIN=/usr/local/bin/Godot_v4.4.1-stable_linux.x86_64" >> $GITHUB_ENV
           chmod +x /usr/local/bin/Godot_v4.4.1-stable_linux.x86_64
-          sudo apt-get update && sudo apt-get install -y xvfb
+          sudo apt-get update && sudo apt-get install -y xvfb x11-utils
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1024x768x24 &
       - name: Build extension
         run: cargo build
       - name: Run resource extract test
