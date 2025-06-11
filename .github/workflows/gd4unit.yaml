@@ -15,7 +15,7 @@ jobs:
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
 
       - name: Build `resource_test_rust`
         run: cargo build -p resource_test_rust --verbose
