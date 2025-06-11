@@ -20,6 +20,7 @@ impl ExtractGd for Gd<PackedScene> {
 const CURVE_SAMPLE_POINTS: usize = 64;
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "easy_hash", derive(easy_hash::EasyHash))]
 pub struct RustCurve {
     baked: [f32; CURVE_SAMPLE_POINTS],
     integral: f32,
@@ -92,6 +93,7 @@ impl ExtractGd for GString {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "easy_hash", derive(easy_hash::EasyHash))]
 pub struct NodePathString(pub String);
 impl_wrapped_builtin_as_gd_res!(NodePathString, NodePath);
 
@@ -101,9 +103,6 @@ impl NodePathString {
     }
 }
 
-// impl AsGdRes for NodePathString {
-//     type ResType = NodePath;
-// }
 impl ExtractGd for NodePath {
     type Extracted = NodePathString;
     fn extract(&self) -> Self::Extracted {

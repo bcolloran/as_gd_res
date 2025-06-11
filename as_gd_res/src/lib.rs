@@ -15,6 +15,11 @@ pub trait AsGdRes: Clone {
     type ResType: ExtractGd + ?Sized;
 }
 
+// pub trait AsGdRes2: Clone {
+//     type ResType: ExtractGd + ?Sized;
+//     fn extract_from(resource: Self::ResType) -> Self;
+// }
+
 pub trait AsSimpleGdEnum: Clone + Copy + Default + Debug + PartialEq + Eq {
     type GdEnumType: ExtractGd + ?Sized;
 }

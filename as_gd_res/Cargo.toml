@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = []
+default = ["easy_hash"]
+easy_hash = ["dep:easy_hash", "dep:fletcher"]
 
 [dependencies]
 as_gd_res_derive = { path = "../as_gd_res_derive" }
@@ -16,3 +17,7 @@ godot = { version = "0.3", features = [
   "register-docs",
   "experimental-threads",
 ] }
+
+
+easy_hash = { git = "https://github.com/bcolloran/easy_hash.git", branch = "master", optional = true }
+fletcher = { version = "0.3.0", optional = true }
