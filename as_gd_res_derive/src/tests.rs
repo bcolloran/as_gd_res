@@ -15,7 +15,7 @@ use syn::parse_quote;
 // However, if the input struct has a `#[as_gd_res(post_init = fn_name)]` attribute, the generated resource struct should not have the `init` attribute (just ``#[class(tool,base=Resource)]`). In this case, we must generate a custom `init` impl for `IResource` that calls `fn_name` after setting the default values, which must be passed through after taking into account any `#[init(...)]` attributes on the fields.
 //
 // # ENUMS
-// `#[derive(::as_gd_res::AsGdRes)]` does not support enums, use `#[derive(::as_gd_res::AsSimpleGdEnum)]` instead.
+// `#[derive(::as_gd_res::AsGdRes)]` does not support enums, use `#[derive(::as_gd_res::AsGdEnumSimple)]` instead.
 //
 // In any other case, the macro should emit an error saying that these conditions have not been met
 //
@@ -229,7 +229,7 @@ fn test_simple_enum() {
 
     let expected = quote! {
         compile_error!(
-                    "`derive(AsGdRes)` only supports enums with single-tuple variants, not unit variants. Did you mean to use `derive(AsSimpleGdEnum)`?"
+                    "`derive(AsGdRes)` only supports enums with single-tuple variants, not unit variants. Did you mean to use `derive(AsGdEnumSimple)`?"
                 );
     };
 

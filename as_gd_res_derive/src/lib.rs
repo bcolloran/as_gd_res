@@ -188,7 +188,7 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
             if all_unit {
                 quote! {
                     compile_error!(
-                        "`derive(AsGdRes)` only supports enums with single-tuple variants, not unit variants. Did you mean to use `derive(AsSimpleGdEnum)`?"
+                        "`derive(AsGdRes)` only supports enums with single-tuple variants, not unit variants. Did you mean to use `derive(AsGdEnumSimple)`?"
                     );
                 }
             } else if all_tuple1 {

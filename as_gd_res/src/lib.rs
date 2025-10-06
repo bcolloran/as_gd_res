@@ -8,7 +8,7 @@ use std::fmt::Debug;
 pub use as_gd_res_derive::*;
 pub use as_simple_gd_enum_derive::*;
 
-use godot::obj::{bounds, Bounds, Gd, GodotClass};
+use godot::obj::{Bounds, Gd, GodotClass, bounds};
 use godot::prelude::*;
 
 pub trait AsGdRes: Clone {
@@ -20,12 +20,12 @@ pub trait AsGdRes: Clone {
 //     fn extract_from(resource: Self::ResType) -> Self;
 // }
 
-pub trait AsSimpleGdEnum: Clone + Copy + Default + Debug + PartialEq + Eq {
+pub trait AsGdEnumSimple: Clone + Copy + Default + Debug + PartialEq + Eq {
     type GdEnumType: ExtractGd + ?Sized;
 }
 
-impl<T: AsSimpleGdEnum> AsGdRes for T {
-    type ResType = <T as AsSimpleGdEnum>::GdEnumType;
+impl<T: AsGdEnumSimple> AsGdRes for T {
+    type ResType = <T as AsGdEnumSimple>::GdEnumType;
 }
 
 pub trait ExtractGd {

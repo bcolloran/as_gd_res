@@ -1,5 +1,5 @@
+use as_gd_res::AsGdEnumSimple;
 use as_gd_res::AsGdRes;
-use as_gd_res::AsSimpleGdEnum;
 use as_gd_res::ExtractGd;
 use as_gd_res::engine_type_impls::NodePathString;
 use as_gd_res::engine_type_impls::PackedScenePath;
@@ -74,7 +74,7 @@ pub struct SimpleData {
 /////////// Simple enum
 // NOTE: godot-rust currently doesn't support wrapping enums in Array<_> or Option<_>. (If you want an enum to be optional, you can include a 'None' variant)
 
-#[derive(AsSimpleGdEnum, Default, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(AsGdEnumSimple, Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SimpleEnum {
     #[default]
     Fire,

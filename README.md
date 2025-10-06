@@ -8,10 +8,10 @@ these macros can be used inside a small Godot extension library.
 
 ## Workspace Layout
 
-- **`as_gd_res`** – Library providing the `AsGdRes`, `AsSimpleGdEnum` and
+- **`as_gd_res`** – Library providing the `AsGdRes`, `AsGdEnumSimple` and
   `ExtractGd` traits, along with helpers for common engine types.
 - **`as_gd_res_derive`** – Procedural macro for `#[derive(AsGdRes)]`.
-- **`as_simple_gd_enum_derive`** – Procedural macro for `#[derive(AsSimpleGdEnum)]`.
+- **`as_simple_gd_enum_derive`** – Procedural macro for `#[derive(AsGdEnumSimple)]`.
 - **`resource_test_rust`** – Example crate compiled as a `cdylib` to test the
   derives from Godot. It is paired with the `resource_test_godot_project`
   directory which contains a minimal Godot project.
@@ -47,7 +47,7 @@ struct MyData {
     pub value: i32,
 }
 
-#[derive(as_gd_res::AsSimpleGdEnum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(as_gd_res::AsGdEnumSimple, Debug, Clone, Copy, PartialEq, Eq, Default)]
 enum Element {
     #[default]
     Fire,

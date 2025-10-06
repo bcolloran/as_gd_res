@@ -30,7 +30,7 @@ fn test_simple_enum() {
             Earth,
             Air,
         }
-        impl ::as_gd_res::AsSimpleGdEnum for Element {
+        impl ::as_gd_res::AsGdEnumSimple for Element {
             type GdEnumType = ElementAsGdEnum;
         }
 
@@ -87,7 +87,7 @@ fn test_enum_with_data_error() {
 
     let expected = quote! {
 
-        compile_error!("`derive(AsSimpleGdEnum)` only supports unit enums. Unsupported variants: Fire(u32), Water(f32).\nDid you mean to derive `AsGdRes`?");
+        compile_error!("`derive(AsGdEnumSimple)` only supports unit enums. Unsupported variants: Fire(u32), Water(f32).\nDid you mean to derive `AsGdRes`?");
 
     };
 
@@ -106,7 +106,7 @@ fn test_struct_error() {
     let expected = quote! {
 
                 compile_error!(
-                    "AsSimpleGdEnum derive only supports enums with unit variants, not structs. Did you mean to derive `AsGdRes`?"
+                    "AsGdEnumSimple derive only supports enums with unit variants, not structs. Did you mean to derive `AsGdRes`?"
                 );
     };
 
@@ -125,7 +125,7 @@ fn test_union_error() {
     let expected = quote! {
 
                 compile_error!(
-                    "AsSimpleGdEnum derive only supports enums with unit variants, not structs. Did you mean to derive `AsGdRes`?"
+                    "AsGdEnumSimple derive only supports enums with unit variants, not structs. Did you mean to derive `AsGdRes`?"
                 );
     };
 
@@ -141,7 +141,7 @@ fn test_generic_enum_error() {
         }
     };
     let expected = quote! {
-        compile_error!("`derive(AsSimpleGdEnum)` does not support generics");
+        compile_error!("`derive(AsGdEnumSimple)` does not support generics");
     };
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
 }
