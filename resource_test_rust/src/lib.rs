@@ -1,10 +1,18 @@
-use as_gd_res::engine_type_impls::NodePathString;
-use as_gd_res::engine_type_impls::PackedScenePath;
-use as_gd_res::engine_type_impls::RustCurve;
 use as_gd_res::AsGdRes;
 use as_gd_res::AsSimpleGdEnum;
 use as_gd_res::ExtractGd;
-use godot::prelude::*;
+use as_gd_res::engine_type_impls::NodePathString;
+use as_gd_res::engine_type_impls::PackedScenePath;
+use as_gd_res::engine_type_impls::RustCurve;
+
+// NOTE manually include needed imports one-by-one; want to see errors if the macro doesn't import things correctly
+use godot::{
+    classes::INode,
+    global::godot_print,
+    init::ExtensionLibrary,
+    obj::WithBaseField,
+    prelude::{Base, GodotClass, Node, gdextension, godot_api},
+};
 
 struct ResourceTestExtension;
 

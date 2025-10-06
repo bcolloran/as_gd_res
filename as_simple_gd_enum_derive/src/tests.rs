@@ -17,6 +17,10 @@ fn test_simple_enum() {
     };
 
     let expected = quote! {
+        pub use mod_elementasgdenum::*;
+        mod mod_elementasgdenum {
+            use super::Element;
+    use ::godot::prelude::GString;
 
         #[derive(::godot::prelude::GodotConvert, ::godot::prelude::Var, ::godot::prelude::Export, Clone, Copy, Debug, PartialEq, Eq)]
         #[godot(via = GString)]
@@ -62,7 +66,7 @@ fn test_simple_enum() {
                 Element::default().into()
             }
         }
-
+    }
     };
 
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());

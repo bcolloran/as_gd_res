@@ -217,7 +217,7 @@ fn test_attr_pass_through() {
 fn test_simple_enum() {
     let input: syn::DeriveInput = parse_quote! {
             #[derive(Default, Clone, Copy, GodotConvert, Var, Export)]
-            #[godot(via = ::godot::builtin::GString)]
+            #[godot(via = GString)]
             pub enum DamageTeam {
                 #[default]
                 Player,
@@ -279,25 +279,32 @@ fn test_enum_with_data_variants() {
             }
         }
 
-        #[godot_dyn]
+        {
+            use ::godot::prelude::godot_dyn;
+            #[godot_dyn]
         impl PickupResourceExtractVariant for MoneyDataResource {
             fn extract_enum_variant(&self) -> Pickup {
                 Pickup::Money(self.extract())
             }
-        }
-        #[godot_dyn]
+        }}
+
+        {
+            use ::godot::prelude::godot_dyn;
+            #[godot_dyn]
         impl PickupResourceExtractVariant for PowerUpDataResource {
             fn extract_enum_variant(&self) -> Pickup {
                 Pickup::PowerUp(self.extract())
             }
-        }
+        }}
 
+        {
+        use ::godot::prelude::godot_dyn;
         #[godot_dyn]
         impl PickupResourceExtractVariant for HealDataResource {
             fn extract_enum_variant(&self) -> Pickup {
                 Pickup::Heal(self.extract())
             }
-        }
+        }}
     };
 
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
@@ -544,8 +551,8 @@ fn test_post_init_attr() {
     //
     // TODO: is it possible to get the a useful compile error if the user forgets to implement the method?
     #[godot_api]
-    impl IResource for JumpParamsResource {
-        fn init(base: Base<Resource>) -> Self {
+    impl ::godot::prelude::IResource for JumpParamsResource {
+        fn init(base: ::godot::prelude::Base<::godot::prelude::Resource>) -> Self {
             let mut res = Self {
                 base,
                 // NOTE: value from the `#[init(val = ...)]` attribute on original struct

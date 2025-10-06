@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use quote::{format_ident, quote, ToTokens};
+use quote::{ToTokens, format_ident, quote};
 use syn::{Data, DeriveInput, Fields};
 
 #[cfg(test)]
@@ -34,8 +34,9 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
     if !input.generics.params.is_empty() {
         return quote! { compile_error!("`derive(AsSimpleGdEnum)` does not support generics"); };
     }
-    let name = input.ident;
-    let res_name = format_ident!("{}AsGdEnum", name);
+    let original_name = input.ident;
+    let res_name = format_ident!("{}AsGdEnum", original_name);
+    let mod_name = format_ident!("mod_{}", res_name.to_string().to_lowercase());
 
     match input.data {
         Data::Enum(data) => {
@@ -87,44 +88,49 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
 
             // all‐unit case ⇒ emit the “AsGdEnum” + trait impls
             quote! {
+                pub use #mod_name::*;
+                mod  #mod_name {
+                use super:: #original_name ;
+                use ::godot::prelude::GString;
+
                 #[derive(::godot::prelude::GodotConvert, ::godot::prelude::Var, ::godot::prelude::Export, Clone, Copy, Debug, PartialEq, Eq)]
                 #[godot(via = GString)]
                 pub enum #res_name {
                     #( #unit_variants , )*
                 }
 
-                impl ::as_gd_res::AsSimpleGdEnum for #name {
+                impl ::as_gd_res::AsSimpleGdEnum for #original_name {
                     type GdEnumType = #res_name;
                 }
 
                 impl ::as_gd_res::ExtractGd for #res_name {
-                    type Extracted = #name;
+                    type Extracted = #original_name;
                     fn extract(&self) -> Self::Extracted {
                         (*self).into()
                     }
                 }
 
-                impl From<#name> for #res_name {
-                    fn from(value: #name) -> #res_name {
+                impl From<#original_name> for #res_name {
+                    fn from(value: #original_name) -> #res_name {
                         match value {
-                            #( #name::#unit_variants => #res_name::#unit_variants , )*
+                            #( #original_name::#unit_variants => #res_name::#unit_variants , )*
                         }
                     }
                 }
 
-                impl From<#res_name> for #name {
-                    fn from(value: #res_name) -> #name {
+                impl From<#res_name> for #original_name {
+                    fn from(value: #res_name) -> #original_name {
                         match value {
-                            #( #res_name::#unit_variants => #name::#unit_variants , )*
+                            #( #res_name::#unit_variants => #original_name::#unit_variants , )*
                         }
                     }
                 }
 
                 impl Default for #res_name {
                     fn default() -> Self {
-                        #name::default().into()
+                        #original_name::default().into()
                     }
-                }
+                }}
             }
         }
         // structs or unions are always wrong

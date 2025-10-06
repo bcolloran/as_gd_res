@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
 use quote::{format_ident, quote};
-use syn::{parse_quote, Data, DeriveInput, Fields, Type};
+use syn::{Data, DeriveInput, Fields, Type, parse_quote};
 
 #[cfg(test)]
 mod tests;
@@ -160,8 +160,8 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
             if let Some(method_ident) = post_init_method {
                 expanded.extend(quote! {
                     #[godot_api]
-                    impl IResource for #res_name {
-                        fn init(base: Base<Resource>) -> Self {
+                    impl ::godot::prelude::IResource for #res_name {
+                        fn init(base: ::godot::prelude::Base<::godot::prelude::Resource>) -> Self {
                             let mut res = Self {
                                 base,
                                 #(#init_assigns)*
@@ -206,11 +206,14 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
                             _ => format_ident!("{}Resource", var_ident),
                         };
                         variant_impls.push(quote! {
+                            {
+                                use ::godot::prelude::godot_dyn;
                             #[godot_dyn]
                             impl #dyn_trait for #variant_res {
                                 fn extract_enum_variant(&self) -> #name {
                                     #name::#var_ident(self.extract())
                                 }
+                            }
                             }
                         });
                     }
