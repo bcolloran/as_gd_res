@@ -279,32 +279,39 @@ fn test_enum_with_data_variants() {
             }
         }
 
-        {
+        pub mod mod_pickup_money{
+            use super::*;
             use ::godot::prelude::godot_dyn;
             #[godot_dyn]
-        impl PickupResourceExtractVariant for MoneyDataResource {
-            fn extract_enum_variant(&self) -> Pickup {
-                Pickup::Money(self.extract())
+            impl PickupResourceExtractVariant for MoneyDataResource {
+                fn extract_enum_variant(&self) -> Pickup {
+                    Pickup::Money(self.extract())
+                }
             }
-        }}
+        }
 
-        {
+        pub mod mod_pickup_powerup{
+            use super::*;
+            use ::godot::prelude::godot_dyn;
+
+            #[godot_dyn]
+            impl PickupResourceExtractVariant for PowerUpDataResource {
+                fn extract_enum_variant(&self) -> Pickup {
+                    Pickup::PowerUp(self.extract())
+                }
+            }
+        }
+
+        pub mod mod_pickup_heal{
+            use super::*;
             use ::godot::prelude::godot_dyn;
             #[godot_dyn]
-        impl PickupResourceExtractVariant for PowerUpDataResource {
-            fn extract_enum_variant(&self) -> Pickup {
-                Pickup::PowerUp(self.extract())
+            impl PickupResourceExtractVariant for HealDataResource {
+                fn extract_enum_variant(&self) -> Pickup {
+                    Pickup::Heal(self.extract())
+                }
             }
-        }}
-
-        {
-        use ::godot::prelude::godot_dyn;
-        #[godot_dyn]
-        impl PickupResourceExtractVariant for HealDataResource {
-            fn extract_enum_variant(&self) -> Pickup {
-                Pickup::Heal(self.extract())
-            }
-        }}
+        }
     };
 
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());

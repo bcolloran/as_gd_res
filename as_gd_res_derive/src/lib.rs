@@ -193,6 +193,7 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
                 }
             } else if all_tuple1 {
                 let dyn_trait = format_ident!("{}ResourceExtractVariant", name);
+
                 let mut variant_impls = Vec::new();
                 for var in &data.variants {
                     if let Fields::Unnamed(fields) = &var.fields {
@@ -205,16 +206,26 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
                             }
                             _ => format_ident!("{}Resource", var_ident),
                         };
+
+                        let variant_mod_ident = format_ident!(
+                            "mod_{}_{}",
+                            name.to_string().to_lowercase(),
+                            var_ident.to_string().to_lowercase()
+                        );
+
                         variant_impls.push(quote! {
-                            {
+
+                            pub mod #variant_mod_ident {
+                                use super::*;
                                 use ::godot::prelude::godot_dyn;
-                            #[godot_dyn]
-                            impl #dyn_trait for #variant_res {
-                                fn extract_enum_variant(&self) -> #name {
-                                    #name::#var_ident(self.extract())
+                                #[godot_dyn]
+                                impl #dyn_trait for #variant_res {
+                                    fn extract_enum_variant(&self) -> #name {
+                                        #name::#var_ident(self.extract())
+                                    }
                                 }
                             }
-                            }
+
                         });
                     }
                 }
