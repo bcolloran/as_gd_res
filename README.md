@@ -31,8 +31,15 @@ these macros can be used inside a small Godot extension library.
 
 ## Testing Godot Integration locally
 
-```
-GODOT_BIN=~/Desktop/Godot_v4.5.1-stable_linux.x86_64 ./resource_test_godot_project/addons/gdUnit4/runtest.sh -a res://unit_test.gd
+Run the script `test_resource_extract_local.sh` to execute the end to end test
+that runs the `test_scene.tscn` and compares the printed output with the expected
+output. Make sure to set the `GODOT_BIN` environment variable to point to your Godot
+binary before running the script.
+
+**Latest is:**
+```shell
+export GODOT_BIN=/home/bc/Desktop/Godot_v4.5.1-stable_linux.x86_64
+./test_resource_extract_local.sh
 ```
 
 ## Usage Overview
