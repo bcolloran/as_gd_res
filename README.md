@@ -29,6 +29,10 @@ these macros can be used inside a small Godot extension library.
 - To run the example Godot project, open the `resource_test_godot_project`
    folder with the Godot editor and enable the compiled extension library.
 
+## Updating Godot version
+
+**Make sure to update the download path in `.github/workflows/resource_output_test.yml`!!!!!**
+
 ## Testing Godot Integration locally
 
 Run the script `test_resource_extract_local.sh` to execute the end to end test
