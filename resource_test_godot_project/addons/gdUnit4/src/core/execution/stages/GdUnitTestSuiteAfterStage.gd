@@ -12,17 +12,18 @@ func _execute(context :GdUnitExecutionContext) -> void:
 
 	@warning_ignore("redundant_await")
 	await test_suite.after()
-	# unreference last used assert form the test to prevent memory leaks
-	GdUnitThreadManager.get_current_context().set_assert(null)
-	await context.gc()
+	await context.gc(GdUnitExecutionContext.GC_ORPHANS_CHECK.SUITE_HOOK_AFTER)
 
-	var reports := context.reports()
-	var orphans := context.count_orphans()
-	if orphans > 0:
-		reports.push_front(GdUnitReport.new() \
-			.create(GdUnitReport.WARN, 1, GdAssertMessages.orphan_detected_on_suite_setup(orphans)))
-	fire_event(GdUnitEvent.new().suite_after(test_suite.get_script().resource_path, test_suite.get_name(), context.build_report_statistics(orphans, false), reports))
-
+	var reports := context.collect_reports(false)
+	var statistics := context.calculate_statistics(reports)
+	fire_event(GdUnitEvent.new()\
+		.suite_after(context.get_test_suite_path(),\
+			test_suite.get_name(),
+			statistics,
+			reports))
 	GdUnitFileAccess.clear_tmp()
 	# Guard that checks if all doubled (spy/mock) objects are released
-	GdUnitClassDoubler.check_leaked_instances()
+	await GdUnitClassDoubler.check_leaked_instances()
+	# we hide the scene/main window after runner is finished
+	if not Engine.is_embedded_in_editor():
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)

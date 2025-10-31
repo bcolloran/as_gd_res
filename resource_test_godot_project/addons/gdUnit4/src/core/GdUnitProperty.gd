@@ -31,6 +31,13 @@ func value() -> Variant:
 	return _value
 
 
+func int_value() -> int:
+	return _value
+
+func value_as_string() -> String:
+	return _value
+
+
 func value_set() -> PackedStringArray:
 	return _value_set
 
@@ -39,16 +46,18 @@ func is_selectable_value() -> bool:
 	return not _value_set.is_empty()
 
 
-func set_value(p_value :Variant) -> void:
+func set_value(p_value: Variant) -> void:
 	match _type:
 		TYPE_STRING:
 			_value = str(p_value)
 		TYPE_BOOL:
-			_value = bool(p_value)
+			_value = type_convert(p_value, TYPE_BOOL)
 		TYPE_INT:
-			_value = int(p_value)
+			_value = type_convert(p_value, TYPE_INT)
 		TYPE_FLOAT:
-			_value = float(p_value)
+			_value = type_convert(p_value, TYPE_FLOAT)
+		TYPE_DICTIONARY:
+			_value = type_convert(p_value, TYPE_DICTIONARY)
 		_:
 			_value = p_value
 

@@ -46,6 +46,8 @@ static func get_spinner() -> AnimatedTexture:
 
 
 static func get_color_animated_icon(icon_name :String, from :Color, to :Color) -> AnimatedTexture:
+	if not Engine.is_editor_hint():
+		return null
 	var texture := AnimatedTexture.new()
 	texture.frames = 8
 	texture.speed_scale = 2.5
@@ -106,13 +108,9 @@ static func _modulate_image(image: Image, color: Color) -> Image:
 
 
 static func _merge_images(image1: Image, offset1: Vector2i, image2: Image, offset2: Vector2i) -> Image:
-	if image1.get_height() != image2.get_height():
-		push_error("invalid height:", image1.get_height(), " vs ", image2.get_height())
-		return null
-	if image1.get_width() != image2.get_width():
-		push_error("invalid width:", image1.get_width(), " vs ", image2.get_width())
-		return null
-
+	## we need to fix the image to have the same size to avoid merge conflicts
+	if image1.get_height() < image2.get_height():
+		image1.resize(image2.get_width(), image2.get_height())
 	# Create a new Image for the merged result
 	var merged_image := Image.create(image1.get_width(), image1.get_height(), false, Image.FORMAT_RGBA8)
 	merged_image.blit_rect_mask(image1, image2, Rect2(Vector2.ZERO, image1.get_size()), offset1)
@@ -122,19 +120,13 @@ static func _merge_images(image1: Image, offset1: Vector2i, image2: Image, offse
 
 @warning_ignore("narrowing_conversion")
 static func _merge_images_scaled(image1: Image, offset1: Vector2i, image2: Image, offset2: Vector2i) -> Image:
-	## we disable the check for now because the image size of icons are different on macos and produces an error
-	## see issue https://github.com/MikeSchulze/gdUnit4/issues/486
-	if not OS.get_distribution_name().contains("mac"):
-		if image1.get_height() != image2.get_height():
-			push_error("invalid height:", image1.get_height(), " vs ", image2.get_height())
-			return null
-		if image1.get_width() != image2.get_width():
-			push_error("invalid width:", image1.get_width(), " vs ", image2.get_width())
-			return null
-
+	## we need to fix the image to have the same size to avoid merge conflicts
+	if image1.get_height() < image2.get_height():
+		image1.resize(image2.get_width(), image2.get_height())
 	# Create a new Image for the merged result
 	var merged_image := Image.create(image1.get_width(), image1.get_height(), false, image1.get_format())
 	merged_image.blend_rect(image1, Rect2(Vector2.ZERO, image1.get_size()), offset1)
+	@warning_ignore("narrowing_conversion")
 	image2.resize(image2.get_width()/1.3, image2.get_height()/1.3)
 	merged_image.blend_rect(image2, Rect2(Vector2.ZERO, image2.get_size()), offset2)
 	return merged_image

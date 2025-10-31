@@ -1,4 +1,6 @@
-use crate::{impl_wrapped_builtin_as_gd_res, AsGdRes, AsGdResArray, AsGdResOpt, ExtractGd};
+use std::str::FromStr;
+
+use crate::{AsGdRes, AsGdResArray, AsGdResOpt, ExtractGd, impl_wrapped_builtin_as_gd_res};
 
 use crate::impl_wrapped_as_gd_res;
 use godot::classes::Curve;
@@ -100,7 +102,8 @@ impl_wrapped_builtin_as_gd_res!(NodePathString, NodePath);
 
 impl NodePathString {
     pub fn to_node_path(&self) -> NodePath {
-        self.0.clone().into()
+        NodePath::from_str(&self.0).unwrap()
+        // self.0.clone().to_string()
     }
 }
 

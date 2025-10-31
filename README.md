@@ -18,22 +18,22 @@ these macros can be used inside a small Godot extension library.
 
 ## Building
 
-1. Ensure you have the stable Rust toolchain installed (`rustup toolchain install stable`).
-2. The `godot` dependency uses a local path in `Cargo.toml`:
+- Ensure you have the nightly Rust toolchain installed
 
-   ```toml
-   godot = { path = "/data/code_projects/rust/gdext/godot", features = ["register-docs", "experimental-threads"] }
-   ```
-
-   Update this path to your own `godot-rust` checkout if necessary.
-3. Build all crates with Cargo:
+- Build all crates with Cargo:
 
    ```bash
    cargo build --workspace --all-targets
    ```
 
-4. To run the example Godot project, open the `resource_test_godot_project`
+- To run the example Godot project, open the `resource_test_godot_project`
    folder with the Godot editor and enable the compiled extension library.
+
+## Testing Godot Integration locally
+
+```
+GODOT_BIN=~/Desktop/Godot_v4.5.1-stable_linux.x86_64 ./resource_test_godot_project/addons/gdUnit4/runtest.sh -a res://unit_test.gd
+```
 
 ## Usage Overview
 
