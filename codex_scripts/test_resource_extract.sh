@@ -11,9 +11,19 @@ if [ -z "${GODOT_BIN:-}" ]; then
 fi
 
 # Preload plugin script classes by running the editor once
-xvfb-run -a "$GODOT_BIN" --headless --editor --path "$REPO_ROOT/resource_test_godot_project" --quit
+# Use additional xvfb-run flags for better stability in CI
+# - Use a virtual screen with specific dimensions
+# - Set --auto-servernum to avoid conflicts
+# - Add --server-args for better compatibility
+echo "Preloading Godot extension classes..."
+xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24" \
+  timeout 60 "$GODOT_BIN" --headless --editor --path "$REPO_ROOT/resource_test_godot_project" --quit 2>&1 || {
+    echo "Warning: Editor preload failed or timed out, continuing anyway..." >&2
+  }
 
-xvfb-run -a "$GODOT_BIN" --headless --path "$REPO_ROOT/resource_test_godot_project" test_scene.tscn > "$OUTPUT"
+echo "Running test scene..."
+xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24" \
+  timeout 60 "$GODOT_BIN" --headless --path "$REPO_ROOT/resource_test_godot_project" test_scene.tscn > "$OUTPUT"
 awk '/--- Resource Extract Test ---/{flag=1;next} flag' "$OUTPUT" > "$OUTPUT.trimmed"
 # remove trailing newline to match expected file
 truncate -s -1 "$OUTPUT.trimmed"

@@ -20,10 +20,16 @@ jobs:
           chmod +x /usr/local/bin/Godot_v4.5.1-stable_linux.x86_64
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libasound2 libpulse0 libxcursor1 libxinerama1 libxrandr2 libxi6 libgl1
 
       - name: Build extension
         run: cargo build
         
       - name: Run resource extract test
-        run: ./codex_scripts/test_resource_extract.sh
+        run: |
+          echo "Godot version:"
+          $GODOT_BIN --version || echo "Failed to get Godot version"
+          echo "Running test script..."
+          ./codex_scripts/test_resource_extract.sh
