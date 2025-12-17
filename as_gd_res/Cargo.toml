@@ -13,7 +13,7 @@ easy_hash = ["dep:easy_hash", "dep:fletcher"]
 as_gd_res_derive = { path = "../as_gd_res_derive" }
 as_simple_gd_enum_derive = { path = "../as_simple_gd_enum_derive" }
 
-godot = { version = "0.4.2", features = [
+godot = { version = "0.4.5", features = [
   "register-docs",
   "experimental-threads",
 ] }
