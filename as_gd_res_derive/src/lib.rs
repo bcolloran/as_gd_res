@@ -3,9 +3,6 @@ use proc_macro2::TokenTree;
 use quote::{format_ident, quote};
 use syn::{Data, DeriveInput, Fields, Type, parse_quote};
 
-#[cfg(test)]
-mod tests;
-
 /// A derive macro to emit a Godot-compatible resource struct + impls for a pure Rust struct.
 #[proc_macro_derive(AsGdRes, attributes(export, init, var, as_gd_res))]
 pub fn as_gd_res_derive(input: TokenStream) -> TokenStream {
@@ -280,4 +277,19 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
             );
         },
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quote::quote;
+    use syn::parse_quote;
+    use pretty_assertions::assert_eq;
+    
+    mod struct_basic;
+    mod struct_attributes;
+    mod struct_nested;
+    mod struct_post_init;
+    mod enum_tests;
+    mod error_tests;
 }
