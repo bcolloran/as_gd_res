@@ -1,7 +1,5 @@
 use super::expand_as_gd_res;
-use pretty_assertions::assert_eq;
-use quote::quote;
-use syn::parse_quote;
+use super::{assert_eq, quote, parse_quote};
 
 #[test]
 fn test_simple_enum() {

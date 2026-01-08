@@ -2,9 +2,6 @@ use proc_macro::TokenStream;
 use quote::{ToTokens, format_ident, quote};
 use syn::{Data, DeriveInput, Fields};
 
-#[cfg(test)]
-mod tests;
-
 /// `#[derive(AsGdEnumSimple)]` only works on enums where all variants are unit variants (i.e. no associated data)
 ///
 /// In any other case, the macro should emit an error saying that this conditions have not been met
@@ -21,7 +18,7 @@ pub fn as_gd_res_derive(input: TokenStream) -> TokenStream {
 /// For an enum with _only_ unit variants, returns a token stream that:
 /// - creates a version of the enum named `{original_enum_name}AsGdEnum` with the same variants as the original enum.
 /// - prepends these derives to the to new enum:
-/// ```
+/// ```text
 /// #[derive(GodotConvert, Var, Export, Clone, Copy, Debug, PartialEq, Eq)]
 /// #[godot(via = GString)]
 /// ```
@@ -142,4 +139,14 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
             }
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quote::quote;
+    use syn::parse_quote;
+    use pretty_assertions::assert_eq;
+    
+    mod enum_simple_tests;
 }
