@@ -1,18 +1,39 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
 use quote::{format_ident, quote};
+use std::collections::HashMap;
 use syn::{Data, DeriveInput, Fields, Type, parse_quote};
 
 /// A derive macro to emit a Godot-compatible resource struct + impls for a pure Rust struct.
-#[proc_macro_derive(AsGdRes, attributes(export, init, var, as_gd_res))]
+#[proc_macro_derive(AsGdRes, attributes(export, init, var, as_gd_res, as_gd_res_types))]
 pub fn as_gd_res_derive(input: TokenStream) -> TokenStream {
     let derive_input = syn::parse_macro_input!(input as DeriveInput);
     TokenStream::from(expand_as_gd_res(derive_input))
 }
 
+/// Substitute generic type parameters with concrete types
+fn substitute_type(ty: &Type, type_map: &HashMap<String, Type>) -> Type {
+    match ty {
+        Type::Path(type_path) => {
+            let mut new_path = type_path.clone();
+            for segment in &mut new_path.path.segments {
+                // Check if this is a generic parameter
+                if let Some(concrete_ty) = type_map.get(&segment.ident.to_string()) {
+                    // Replace with concrete type
+                    return concrete_ty.clone();
+                }
+            }
+            Type::Path(new_path)
+        }
+        _ => ty.clone(),
+    }
+}
+
 fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
     // Detect #[as_gd_res(post_init = METHOD)] on the struct
     let mut post_init_method: Option<proc_macro2::Ident> = None;
+    // Detect #[as_gd_res_types(T1 = i32, T2 = String)] on the struct
+    let mut generic_type_map: Option<HashMap<String, Type>> = None;
     let mut new_attrs = Vec::new();
     for attr in input.attrs.into_iter() {
         if attr.path().is_ident("as_gd_res") {
@@ -33,17 +54,76 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
                 }
             }
             // Do not propagate this attribute
+        } else if attr.path().is_ident("as_gd_res_types") {
+            // Parse #[as_gd_res_types(T1 = i32, T2 = String)]
+            if let syn::Meta::List(meta_list) = &attr.meta {
+                let mut map = HashMap::new();
+                let mut iter = meta_list.tokens.clone().into_iter();
+                while let Some(tok) = iter.next() {
+                    if let TokenTree::Ident(param_name) = &tok {
+                        // skip '='
+                        if let Some(TokenTree::Punct(p)) = iter.next() {
+                            if p.as_char() == '=' {
+                                // Collect tokens until we hit a comma or end
+                                let mut type_tokens = Vec::new();
+                                loop {
+                                    match iter.next() {
+                                        Some(TokenTree::Punct(p)) if p.as_char() == ',' => break,
+                                        Some(t) => type_tokens.push(t),
+                                        None => break,
+                                    }
+                                }
+                                // Parse the collected tokens as a Type
+                                let type_stream: proc_macro2::TokenStream =
+                                    type_tokens.into_iter().collect();
+                                if let Ok(ty) = syn::parse2::<Type>(type_stream) {
+                                    map.insert(param_name.to_string(), ty);
+                                }
+                            }
+                        }
+                    }
+                }
+                if !map.is_empty() {
+                    generic_type_map = Some(map);
+                }
+            }
+            // Do not propagate this attribute
         } else {
             new_attrs.push(attr);
         }
     }
     input.attrs = new_attrs;
 
-    if !input.generics.params.is_empty() {
-        return quote! { compile_error!("`derive(AsGdRes)` does not support generics"); };
+    // Check if we have generics but no type map
+    if !input.generics.params.is_empty() && generic_type_map.is_none() {
+        return quote! { compile_error!("`derive(AsGdRes)` requires #[as_gd_res_types(...)] attribute when using generics"); };
     }
+
     let name = input.ident.clone();
     let res_name = format_ident!("{}Resource", name);
+
+    // Build concrete type arguments for trait impls if we have generics
+    let concrete_type_args = if let Some(ref type_map) = generic_type_map {
+        let args: Vec<&Type> = input
+            .generics
+            .params
+            .iter()
+            .filter_map(|param| {
+                if let syn::GenericParam::Type(ty_param) = param {
+                    type_map.get(&ty_param.ident.to_string())
+                } else {
+                    None
+                }
+            })
+            .collect();
+        if args.is_empty() {
+            quote! {}
+        } else {
+            quote! { <#(#args),*> }
+        }
+    } else {
+        quote! {}
+    };
 
     match input.data {
         Data::Struct(data) => {
@@ -76,9 +156,15 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
                         attrs.push(parse_quote!(#[export]));
                     }
                     let ty = &field.ty;
+                    // Substitute generic types if we have a type map
+                    let concrete_ty = if let Some(ref type_map) = generic_type_map {
+                        substitute_type(ty, type_map)
+                    } else {
+                        ty.clone()
+                    };
                     defs.push(quote! {
                         #(#attrs)*
-                        pub #ident: <#ty as ::as_gd_res::AsGdRes>::ResType,
+                        pub #ident: <#concrete_ty as ::as_gd_res::AsGdRes>::ResType,
                     });
                     extracts.push(quote! {
                         #ident: self.#ident.extract(),
@@ -124,13 +210,13 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
             };
 
             let mut expanded = quote! {
-                impl ::as_gd_res::AsGdRes for #name {
+                impl ::as_gd_res::AsGdRes for #name #concrete_type_args {
                     type ResType = ::godot::prelude::OnEditor<::godot::obj::Gd<#res_name>>;
                 }
-                impl ::as_gd_res::AsGdResOpt for #name {
+                impl ::as_gd_res::AsGdResOpt for #name #concrete_type_args {
                     type GdOption = Option<::godot::obj::Gd<#res_name>>;
                 }
-                impl ::as_gd_res::AsGdResArray for #name {
+                impl ::as_gd_res::AsGdResArray for #name #concrete_type_args {
                     type GdArray = ::godot::prelude::Array<::godot::obj::Gd<#res_name>>;
                 }
 
@@ -143,7 +229,7 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
                 }
 
                 impl ::as_gd_res::ExtractGd for #res_name {
-                    type Extracted = #name;
+                    type Extracted = #name #concrete_type_args;
                     fn extract(&self) -> Self::Extracted {
                         use ::as_gd_res::ExtractGd;
                         Self::Extracted {
@@ -282,14 +368,15 @@ fn expand_as_gd_res(mut input: DeriveInput) -> proc_macro2::TokenStream {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
     use quote::quote;
     use syn::parse_quote;
-    use pretty_assertions::assert_eq;
-    
-    mod struct_basic;
-    mod struct_attributes;
-    mod struct_nested;
-    mod struct_post_init;
+
     mod enum_tests;
     mod error_tests;
+    mod struct_attributes;
+    mod struct_basic;
+    mod struct_nested;
+    mod struct_post_init;
+    mod struct_with_generics;
 }

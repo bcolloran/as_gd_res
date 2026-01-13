@@ -32,7 +32,7 @@ fn test_generic_struct_error() {
         pub struct Bar<T> { val: T }
     };
     let expected = quote! {
-        compile_error!("`derive(AsGdRes)` does not support generics");
+        compile_error!("`derive(AsGdRes)` requires #[as_gd_res_types(...)] attribute when using generics");
     };
     assert_eq!(expand_as_gd_res(input).to_string(), expected.to_string());
 }

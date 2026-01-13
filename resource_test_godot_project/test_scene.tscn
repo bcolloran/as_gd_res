@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://cyujto62c6c81"]
+[gd_scene load_steps=7 format=3 uid="uid://cyujto62c6c81"]
 
 [ext_resource type="ComplicatedResource" uid="uid://r2084xaooe41" path="res://test_complicated_resource.tres" id="1_uhqqe"]
 
@@ -16,6 +16,10 @@ path_to_node = NodePath("ChildNode1/GrandChildNode1")
 height = 3.0
 time_up = 2.0
 
+[sub_resource type="StructWithGenericsResource" id="StructWithGenericsResource_uhqqe"]
+field1 = 123
+field2 = "this struct's second generic type is `String`"
+
 [node name="Node2D" type="Node2D"]
 
 [node name="TestNode" type="TestNode" parent="."]
@@ -24,6 +28,7 @@ enum_with_data = SubResource("PowerUpDataResource_uhqqe")
 crazy_nested_resource = ExtResource("1_uhqqe")
 calculated_resource_default_in_editor = SubResource("JumpParamsResource_uhqqe")
 calculated_resource_changed_in_editor = SubResource("JumpParamsResource_ia1lp")
+generic_struct_with_concrete_types = SubResource("StructWithGenericsResource_uhqqe")
 
 [node name="ChildNode1" type="Node" parent="TestNode"]
 

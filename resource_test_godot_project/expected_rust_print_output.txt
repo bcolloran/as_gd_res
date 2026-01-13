@@ -336,3 +336,7 @@ calculated_resource_changed_in_editor: JumpParams {
     jump_landing_vel: -12.0,
     terminal_vel: -18.0,
 }
+generic_struct_with_concrete_types: StructWithGenerics {
+    field1: 123,
+    field2: "this struct's second generic type is `String`",
+}

@@ -36,6 +36,8 @@ struct TestNode {
     calculated_resource_default_in_editor: <JumpParams as AsGdRes>::ResType,
     #[export]
     calculated_resource_changed_in_editor: <JumpParams as AsGdRes>::ResType,
+    #[export]
+    generic_struct_with_concrete_types: <StructWithGenerics<i32, String> as AsGdRes>::ResType,
 }
 
 #[godot_api]
@@ -56,6 +58,11 @@ impl INode for TestNode {
         godot_print!(
             "calculated_resource_changed_in_editor: {:#?}",
             self.calculated_resource_changed_in_editor.extract()
+        );
+
+        godot_print!(
+            "generic_struct_with_concrete_types: {:#?}",
+            self.generic_struct_with_concrete_types.extract()
         );
 
         self.base().get_tree().map(|mut tree| tree.quit());
@@ -217,4 +224,11 @@ impl JumpParamsResource {
         self.jump_landing_vel = self.grav_falling_acc * self.time_down;
         self.terminal_vel = self.jump_landing_vel * self.terminal_vel_fall_mult;
     }
+}
+
+#[derive(AsGdRes, Clone, Debug)]
+#[as_gd_res_types(T1 = i32, T2 = String)]
+pub struct StructWithGenerics<T1, T2> {
+    pub field1: T1,
+    pub field2: T2,
 }
