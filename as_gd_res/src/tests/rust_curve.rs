@@ -101,33 +101,14 @@ fn test_negative_domain() {
     assert!(curve.try_sample(-4.0).is_err());
 }
 
-/// This test documents a known edge case: when min == max (zero-width domain),
-/// the current implementation will cause division by zero/NaN.
-/// This is a potential bug that should be addressed if zero-width domains are valid inputs.
+/// This test verifies that zero-width domains (min == max) are handled correctly.
+/// The implementation now returns the first baked value when the domain has zero width.
 #[test]
-fn test_zero_width_domain_edge_case() {
+fn test_zero_width_domain_handled_correctly() {
     let curve = make_constant_curve(0.5, 1.0, 1.0); // min == max
     
-    // When x == min == max, this should ideally succeed
+    // When x == min == max, it should succeed and return the first baked value
     let result = curve.try_sample(1.0);
-    
-    // Current behavior: The division (x - min) / (max - min) = 0/0 = NaN
-    // NaN * 63.0 = NaN
-    // NaN.round() as usize produces undefined behavior or a very large number
-    // This test documents the current (problematic) behavior
-    
-    // The result is either Ok (with potentially wrong index) or could panic on index out of bounds
-    // Let's check what actually happens
-    match result {
-        Ok(value) => {
-            // If it succeeds, the value should be some element of the baked array
-            // Due to NaN handling, this might not be 0.5
-            println!("Zero-width domain produced: {:?}", value);
-        }
-        Err(e) => {
-            println!("Zero-width domain produced error: {}", e);
-        }
-    }
-    // NOTE: This test intentionally doesn't assert on the result to document
-    // the undefined behavior. A proper fix would handle this case explicitly.
+    assert!(result.is_ok());
+    assert!((result.unwrap() - 0.5).abs() < 1e-6);
 }
