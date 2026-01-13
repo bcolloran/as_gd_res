@@ -61,6 +61,18 @@ impl RustCurve {
     pub fn min_domain(&self) -> f32 {
         self.min
     }
+
+    /// Creates a new RustCurve for testing purposes.
+    /// This constructor is only available in test builds.
+    #[cfg(test)]
+    pub fn new_for_test(baked: [f32; CURVE_SAMPLE_POINTS], integral: f32, min: f32, max: f32) -> Self {
+        Self {
+            baked,
+            integral,
+            max,
+            min,
+        }
+    }
 }
 
 impl_wrapped_as_gd_res!(RustCurve, Curve);
