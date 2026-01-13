@@ -1,4 +1,4 @@
-# gd_bind_sync
+# as_gd_res
 
 A Rust workspace that generates Godot `Resource` wrappers for your data types.
 
