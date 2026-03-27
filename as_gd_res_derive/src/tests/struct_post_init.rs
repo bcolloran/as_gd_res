@@ -1,5 +1,5 @@
 use super::expand_as_gd_res;
-use super::{assert_eq, quote, parse_quote};
+use super::{assert_eq, parse_quote, quote};
 
 // The `#[as_gd_res(post_init = fn_name)]` attribute
 // Resource structs are normally created with `#[class(tool,init,base=Resource)]`, which generates a constructor that initializes the resource with default values.

@@ -10,9 +10,9 @@ edition = "2024"
 proc-macro = true
 
 [dependencies]
-syn = { version = "2.0.101", features = ["full", "extra-traits"] }
-quote = "1.0.21"
-proc-macro2 = "1.0.47"
+syn = { workspace = true }
+quote = { workspace = true }
+proc-macro2 = { workspace = true }
 
 [dev-dependencies]
-pretty_assertions = "1.4.1"
+pretty_assertions = { workspace = true }

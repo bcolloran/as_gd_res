@@ -1,5 +1,5 @@
 use super::expand_as_gd_res;
-use super::{assert_eq, quote, parse_quote};
+use super::{assert_eq, parse_quote, quote};
 
 // Spec for attribute pass-through:
 // - If the field has any of the following attributes, they should be passed through to the generated struct.

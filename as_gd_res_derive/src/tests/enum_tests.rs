@@ -1,5 +1,5 @@
 use super::expand_as_gd_res;
-use super::{assert_eq, quote, parse_quote};
+use super::{assert_eq, parse_quote, quote};
 
 // NOTE: Option<{enum types}> is not supported, ::as_gd_res::AsGdRes not impled for that
 #[test]

@@ -1,5 +1,5 @@
 use super::expand_as_gd_res;
-use super::{assert_eq, quote, parse_quote};
+use super::{assert_eq, parse_quote, quote};
 
 #[test]
 fn test_complex_nested_struct() {

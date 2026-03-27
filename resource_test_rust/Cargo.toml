@@ -7,8 +7,5 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-godot = { version = "0.4.5", features = [
-  "register-docs",
-  "experimental-threads",
-] }
+godot = { workspace = true }
 as_gd_res = { path = "../as_gd_res" }

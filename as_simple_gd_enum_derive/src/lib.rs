@@ -144,9 +144,9 @@ fn expand_as_gd_res(input: DeriveInput) -> proc_macro2::TokenStream {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
     use quote::quote;
     use syn::parse_quote;
-    use pretty_assertions::assert_eq;
-    
+
     mod enum_simple_tests;
 }
