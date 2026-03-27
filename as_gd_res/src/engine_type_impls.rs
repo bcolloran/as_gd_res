@@ -45,6 +45,12 @@ impl RustCurve {
                 x, self.max
             ));
         }
+        // Handle zero-width domain (min == max) as a special case
+        // to avoid division by zero which would produce NaN
+        if (self.max - self.min).abs() < f32::EPSILON {
+            // For a zero-width domain, return the first baked value
+            return Ok(self.baked[0]);
+        }
         let index = ((x - self.min) / (self.max - self.min) * (CURVE_SAMPLE_POINTS as f32 - 1.0))
             .round() as usize;
         Ok(self.baked[index])
@@ -60,6 +66,18 @@ impl RustCurve {
 
     pub fn min_domain(&self) -> f32 {
         self.min
+    }
+
+    /// Creates a new RustCurve for testing purposes.
+    /// This constructor is only available in test builds.
+    #[cfg(test)]
+    pub fn new_for_test(baked: [f32; CURVE_SAMPLE_POINTS], integral: f32, min: f32, max: f32) -> Self {
+        Self {
+            baked,
+            integral,
+            max,
+            min,
+        }
     }
 }
 

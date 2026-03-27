@@ -148,5 +148,6 @@ mod tests {
     use quote::quote;
     use syn::parse_quote;
 
+    mod edge_cases;
     mod enum_simple_tests;
 }

@@ -372,8 +372,10 @@ mod tests {
     use quote::quote;
     use syn::parse_quote;
 
+    mod edge_cases;
     mod enum_tests;
     mod error_tests;
+    mod generics_detailed;
     mod struct_attributes;
     mod struct_basic;
     mod struct_nested;

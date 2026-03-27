@@ -3,6 +3,9 @@ pub mod engine_type_impls;
 
 pub mod impl_wrapped_as_gd_res;
 
+#[cfg(test)]
+mod tests;
+
 use std::fmt::Debug;
 
 pub use as_gd_res_derive::*;
