@@ -53,10 +53,10 @@ fn test_try_sample_returns_correct_value() {
 #[test]
 fn test_try_sample_at_boundaries() {
     let curve = make_constant_curve(1.0, 0.0, 1.0);
-    
+
     // Sample at exact min boundary
     assert!(curve.try_sample(0.0).is_ok());
-    
+
     // Sample at exact max boundary
     assert!(curve.try_sample(1.0).is_ok());
 }
@@ -64,11 +64,11 @@ fn test_try_sample_at_boundaries() {
 #[test]
 fn test_linear_curve_endpoints() {
     let curve = make_linear_curve(0.0, 1.0);
-    
+
     // At min (t=0), should get first baked value (0.0)
     let at_min = curve.try_sample(0.0).unwrap();
     assert!((at_min - 0.0).abs() < 0.02, "at_min = {}", at_min);
-    
+
     // At max (t=1), should get last baked value (1.0)
     let at_max = curve.try_sample(1.0).unwrap();
     assert!((at_max - 1.0).abs() < 0.02, "at_max = {}", at_max);
@@ -92,10 +92,10 @@ fn test_integral_accessor() {
 #[test]
 fn test_negative_domain() {
     let curve = make_constant_curve(0.5, -10.0, -5.0);
-    
+
     // Within domain
     assert!(curve.try_sample(-7.5).is_ok());
-    
+
     // Outside domain
     assert!(curve.try_sample(-11.0).is_err());
     assert!(curve.try_sample(-4.0).is_err());
@@ -106,7 +106,7 @@ fn test_negative_domain() {
 #[test]
 fn test_zero_width_domain_handled_correctly() {
     let curve = make_constant_curve(0.5, 1.0, 1.0); // min == max
-    
+
     // When x == min == max, it should succeed and return the first baked value
     let result = curve.try_sample(1.0);
     assert!(result.is_ok());

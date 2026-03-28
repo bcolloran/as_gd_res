@@ -65,7 +65,7 @@ impl INode for TestNode {
             self.generic_struct_with_concrete_types.extract()
         );
 
-        self.base().get_tree().map(|mut tree| tree.quit());
+        self.base().get_tree().quit();
     }
 }
 
@@ -197,9 +197,17 @@ pub struct JumpParams {
 #[godot_api]
 impl JumpParamsResource {
     #[func]
+    pub fn get_height(&self) -> f32 {
+        self.height
+    }
+    #[func]
     pub fn set_height(&mut self, value: f32) {
         self.height = value;
         self.calculate_jump_params();
+    }
+    #[func]
+    pub fn get_time_up(&self) -> f32 {
+        self.time_up
     }
     #[func]
     pub fn set_time_up(&mut self, value: f32) {
@@ -207,9 +215,17 @@ impl JumpParamsResource {
         self.calculate_jump_params();
     }
     #[func]
+    pub fn get_time_down(&self) -> f32 {
+        self.time_down
+    }
+    #[func]
     pub fn set_time_down(&mut self, value: f32) {
         self.time_down = value;
         self.calculate_jump_params();
+    }
+    #[func]
+    pub fn get_terminal_vel_fall_mult(&self) -> f32 {
+        self.terminal_vel_fall_mult
     }
     #[func]
     pub fn set_terminal_vel_fall_mult(&mut self, value: f32) {

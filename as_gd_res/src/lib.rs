@@ -147,7 +147,7 @@ where
 
 impl<T> ExtractGd for Array<T>
 where
-    T: ExtractGd + godot::meta::ArrayElement,
+    T: ExtractGd + godot::meta::Element,
 {
     type Extracted = Vec<T::Extracted>;
     fn extract(&self) -> Self::Extracted {

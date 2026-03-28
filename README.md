@@ -83,4 +83,5 @@ This project is licensed under the MIT License.
 
 ## Version numbering
 
-The version numbers of the crates in this workspace track godot-rust's in the following way: if godot-rust's version is `x.y.z`, then the version of the crates in this workspace will be `0.xyz.a`, where `a` is the version of this crate (only need a single number for versioning this tiny crate).
+The version numbers of the crates in this workspace track the `godot` crate in the following way: if godot-rust's version is `x.y.z`, then the version of the crates in this workspace will be `0.xyz.n`, where `n` is the (zero indexed) number of versions of this crate released under the `0.xyz` version. 
+

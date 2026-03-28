@@ -1,6 +1,6 @@
 [package]
 name = "as_gd_res_derive"
-version = "0.1.0"
+version = "0.500.0"
 edition = "2024"
 
 
