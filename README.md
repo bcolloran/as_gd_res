@@ -42,7 +42,7 @@ binary before running the script.
 
 **Latest is:**
 ```shell
-export GODOT_BIN=/home/bc/Desktop/Godot_v4.5.1-stable_linux.x86_64
+export GODOT_BIN=/home/bc/Desktop/Godot_v4.6.1-stable_linux.x86_64
 ./test_resource_extract_local.sh
 ```
 

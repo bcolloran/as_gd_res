@@ -30,7 +30,7 @@ The repository includes an end to end test that verifies that various resource t
 Set the `GODOT_BIN` environment variable to point to your local Godot binary, then run the test script `test_resource_extract_local.sh` located in the repository root. For example, in a bash terminal:
 
 ```bash
-export GODOT_BIN=/home/bc/Desktop/Godot_v4.5.1-stable_linux.x86_64
+export GODOT_BIN=/home/bc/Desktop/Godot_v4.6.1-stable_linux.x86_64
 bash test_resource_extract_local.sh 
 ```
 
