@@ -340,3 +340,39 @@ generic_struct_with_concrete_types: StructWithGenerics {
     field1: 123,
     field2: "this struct's second generic type is `String`",
 }
+nested_generic_struct: StructWithGenericsNested {
+    field1: 42,
+    field2: "nested_parent",
+    nested1: StructWithGenerics {
+        field1: 10,
+        field2: "nested1_field2",
+    },
+    nested2: StructWithGenerics2 {
+        field1: 20,
+        field2: "nested2_field2",
+    },
+}
+deeper_nested_generic_struct: StructWithDeeperGenericNest {
+    field1: 77,
+    field2: "deeper_parent",
+    nested1: Some(
+        StructWithGenerics {
+            field1: 100,
+            field2: "deep_inner",
+        },
+    ),
+    nested2: Some(
+        StructWithGenericsNested {
+            field1: 55,
+            field2: "deep_nested2_parent",
+            nested1: StructWithGenerics {
+                field1: 200,
+                field2: "deeper_nested1_field2",
+            },
+            nested2: StructWithGenerics2 {
+                field1: 300,
+                field2: "deeper_nested2_field2",
+            },
+        },
+    ),
+}

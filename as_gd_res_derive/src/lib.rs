@@ -11,21 +11,38 @@ pub fn as_gd_res_derive(input: TokenStream) -> TokenStream {
     TokenStream::from(expand_as_gd_res(derive_input))
 }
 
-/// Substitute generic type parameters with concrete types
+/// Substitute generic type parameters with concrete types, recursing into
+/// generic arguments (e.g. `Foo<T1, T2>` → `Foo<i32, String>`).
 fn substitute_type(ty: &Type, type_map: &HashMap<String, Type>) -> Type {
     match ty {
         Type::Path(type_path) => {
             let mut new_path = type_path.clone();
             for segment in &mut new_path.path.segments {
-                // Check if this is a generic parameter
-                if let Some(concrete_ty) = type_map.get(&segment.ident.to_string()) {
-                    // Replace with concrete type
-                    return concrete_ty.clone();
+                // Check if this segment itself is a generic parameter name
+                if segment.arguments.is_none()
+                    || matches!(segment.arguments, syn::PathArguments::None)
+                {
+                    if let Some(concrete_ty) = type_map.get(&segment.ident.to_string()) {
+                        return concrete_ty.clone();
+                    }
                 }
+                // Recurse into generic arguments (e.g. <T1, T2> in Foo<T1, T2>)
+                substitute_path_arguments(&mut segment.arguments, type_map);
             }
             Type::Path(new_path)
         }
         _ => ty.clone(),
+    }
+}
+
+/// Recurse into path arguments to substitute generic type parameters.
+fn substitute_path_arguments(args: &mut syn::PathArguments, type_map: &HashMap<String, Type>) {
+    if let syn::PathArguments::AngleBracketed(angle) = args {
+        for arg in &mut angle.args {
+            if let syn::GenericArgument::Type(inner_ty) = arg {
+                *inner_ty = substitute_type(inner_ty, type_map);
+            }
+        }
     }
 }
 
@@ -379,6 +396,7 @@ mod tests {
     mod struct_attributes;
     mod struct_basic;
     mod struct_nested;
+    mod struct_nested_generics;
     mod struct_post_init;
     mod struct_with_generics;
 }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cyujto62c6c81"]
+[gd_scene load_steps=15 format=3 uid="uid://cyujto62c6c81"]
 
 [ext_resource type="ComplicatedResource" uid="uid://r2084xaooe41" path="res://test_complicated_resource.tres" id="1_uhqqe"]
 
@@ -20,6 +20,44 @@ time_up = 2.0
 field1 = 123
 field2 = "this struct's second generic type is `String`"
 
+[sub_resource type="StructWithGenericsResource" id="StructWithGenericsResource_nested1"]
+field1 = 10
+field2 = "nested1_field2"
+
+[sub_resource type="StructWithGenerics2Resource" id="StructWithGenerics2Resource_nested2"]
+field1 = 20
+field2 = "nested2_field2"
+
+[sub_resource type="StructWithGenericsNestedResource" id="StructWithGenericsNestedResource_uhqqe"]
+field1 = 42
+field2 = "nested_parent"
+nested1 = SubResource("StructWithGenericsResource_nested1")
+nested2 = SubResource("StructWithGenerics2Resource_nested2")
+
+[sub_resource type="StructWithGenericsResource" id="StructWithGenericsResource_deep_nested1"]
+field1 = 100
+field2 = "deep_inner"
+
+[sub_resource type="StructWithGenericsResource" id="StructWithGenericsResource_deep_nested2_inner1"]
+field1 = 200
+field2 = "deeper_nested1_field2"
+
+[sub_resource type="StructWithGenerics2Resource" id="StructWithGenerics2Resource_deep_nested2_inner2"]
+field1 = 300
+field2 = "deeper_nested2_field2"
+
+[sub_resource type="StructWithGenericsNestedResource" id="StructWithGenericsNestedResource_deep_nested2"]
+field1 = 55
+field2 = "deep_nested2_parent"
+nested1 = SubResource("StructWithGenericsResource_deep_nested2_inner1")
+nested2 = SubResource("StructWithGenerics2Resource_deep_nested2_inner2")
+
+[sub_resource type="StructWithDeeperGenericNestResource" id="StructWithDeeperGenericNestResource_uhqqe"]
+field1 = 77
+field2 = "deeper_parent"
+nested1 = SubResource("StructWithGenericsResource_deep_nested1")
+nested2 = SubResource("StructWithGenericsNestedResource_deep_nested2")
+
 [node name="Node2D" type="Node2D"]
 
 [node name="TestNode" type="TestNode" parent="."]
@@ -29,6 +67,8 @@ crazy_nested_resource = ExtResource("1_uhqqe")
 calculated_resource_default_in_editor = SubResource("JumpParamsResource_uhqqe")
 calculated_resource_changed_in_editor = SubResource("JumpParamsResource_ia1lp")
 generic_struct_with_concrete_types = SubResource("StructWithGenericsResource_uhqqe")
+nested_generic_struct = SubResource("StructWithGenericsNestedResource_uhqqe")
+deeper_nested_generic_struct = SubResource("StructWithDeeperGenericNestResource_uhqqe")
 
 [node name="ChildNode1" type="Node" parent="TestNode"]
 

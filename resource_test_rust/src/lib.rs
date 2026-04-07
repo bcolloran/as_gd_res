@@ -38,6 +38,10 @@ struct TestNode {
     calculated_resource_changed_in_editor: <JumpParams as AsGdRes>::ResType,
     #[export]
     generic_struct_with_concrete_types: <StructWithGenerics<i32, String> as AsGdRes>::ResType,
+    #[export]
+    nested_generic_struct: <StructWithGenericsNested<i32, String> as AsGdRes>::ResType,
+    #[export]
+    deeper_nested_generic_struct: <StructWithDeeperGenericNest<i32, String> as AsGdRes>::ResType,
 }
 
 #[godot_api]
@@ -63,6 +67,16 @@ impl INode for TestNode {
         godot_print!(
             "generic_struct_with_concrete_types: {:#?}",
             self.generic_struct_with_concrete_types.extract()
+        );
+
+        godot_print!(
+            "nested_generic_struct: {:#?}",
+            self.nested_generic_struct.extract()
+        );
+
+        godot_print!(
+            "deeper_nested_generic_struct: {:#?}",
+            self.deeper_nested_generic_struct.extract()
         );
 
         self.base().get_tree().quit();
@@ -247,4 +261,29 @@ impl JumpParamsResource {
 pub struct StructWithGenerics<T1, T2> {
     pub field1: T1,
     pub field2: T2,
+}
+
+#[derive(AsGdRes, Clone, Debug)]
+#[as_gd_res_types(T1 = i32, T2 = String)]
+pub struct StructWithGenerics2<T1, T2> {
+    pub field1: T1,
+    pub field2: T2,
+}
+
+#[derive(AsGdRes, Clone, Debug)]
+#[as_gd_res_types(T1 = i32, T2 = String)]
+pub struct StructWithGenericsNested<T1, T2> {
+    pub field1: T1,
+    pub field2: T2,
+    pub nested1: StructWithGenerics<T1, T2>,
+    pub nested2: StructWithGenerics2<T1, T2>,
+}
+
+#[derive(AsGdRes, Clone, Debug)]
+#[as_gd_res_types(T1 = i32, T2 = String)]
+pub struct StructWithDeeperGenericNest<T1, T2> {
+    pub field1: T1,
+    pub field2: T2,
+    pub nested1: Option<StructWithGenerics<T1, T2>>,
+    pub nested2: Option<StructWithGenericsNested<T1, T2>>,
 }

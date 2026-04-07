@@ -148,20 +148,17 @@ fn test_generic_with_complex_type() {
     assert_eq!(actual.to_string(), expected.to_string());
 }
 
-/// Test that NESTED generic types are NOT substituted (documents current limitation)
-/// For example, Vec<T> where T is generic - T will NOT be substituted
+/// Test that nested generic types ARE substituted recursively.
+/// For example, Vec<T> where T is generic becomes Vec<i32>.
 #[test]
-fn test_nested_generic_not_substituted() {
+fn test_nested_generic_substituted() {
     let input: syn::DeriveInput = parse_quote! {
         #[as_gd_res_types(T = i32)]
         pub struct NestedGeneric<T> {
-            // NOTE: Vec<T> is not substituted - T inside Vec stays as T
             pub field: Vec<T>,
         }
     };
     let actual = expand_as_gd_res(input);
-    // This shows the CURRENT (arguably incorrect) behavior:
-    // Vec<T> is NOT substituted to Vec<i32>
     let expected = quote! {
         impl ::as_gd_res::AsGdRes for NestedGeneric<i32> {
             type ResType = ::godot::prelude::OnEditor<::godot::obj::Gd<NestedGenericResource>>;
@@ -181,8 +178,7 @@ fn test_nested_generic_not_substituted() {
             #[base]
             base: ::godot::obj::Base<::godot::classes::Resource>,
             #[export]
-            // NOTE: This is Vec<T> not Vec<i32> - showing the limitation
-            pub field: <Vec<T> as ::as_gd_res::AsGdRes>::ResType,
+            pub field: <Vec<i32> as ::as_gd_res::AsGdRes>::ResType,
         }
 
         impl ::as_gd_res::ExtractGd for NestedGenericResource {
@@ -198,19 +194,16 @@ fn test_nested_generic_not_substituted() {
     assert_eq!(actual.to_string(), expected.to_string());
 }
 
-/// Test that Option<T> with generic T is NOT substituted (documents current limitation)
+/// Test that Option<T> with generic T IS substituted correctly.
 #[test]
-fn test_option_generic_not_substituted() {
+fn test_option_generic_substituted() {
     let input: syn::DeriveInput = parse_quote! {
         #[as_gd_res_types(T = i32)]
         pub struct OptionGeneric<T> {
-            // NOTE: Option<T> is not substituted - T inside Option stays as T
             pub field: Option<T>,
         }
     };
     let actual = expand_as_gd_res(input);
-    // This shows the CURRENT (arguably incorrect) behavior:
-    // Option<T> is NOT substituted to Option<i32>
     let expected = quote! {
         impl ::as_gd_res::AsGdRes for OptionGeneric<i32> {
             type ResType = ::godot::prelude::OnEditor<::godot::obj::Gd<OptionGenericResource>>;
@@ -230,8 +223,7 @@ fn test_option_generic_not_substituted() {
             #[base]
             base: ::godot::obj::Base<::godot::classes::Resource>,
             #[export]
-            // NOTE: This is Option<T> not Option<i32> - showing the limitation
-            pub field: <Option<T> as ::as_gd_res::AsGdRes>::ResType,
+            pub field: <Option<i32> as ::as_gd_res::AsGdRes>::ResType,
         }
 
         impl ::as_gd_res::ExtractGd for OptionGenericResource {
