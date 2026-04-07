@@ -2,3 +2,7 @@
 .godot/
 /android/
 /reports
+
+# Test script intermediate output
+rust_print_output_latest.tmp.txt
+rust_print_output_diff.tmp.txt

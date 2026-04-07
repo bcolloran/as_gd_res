@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-EXPECTED="$REPO_ROOT/resource_test_godot_project/expected_rust_print_output.txt"
+EXPECTED="$REPO_ROOT/resource_test_godot_project/rust_print_output_expected.txt"
 OUTPUT=$(mktemp)
 
 if [ -z "${GODOT_BIN:-}" ]; then
